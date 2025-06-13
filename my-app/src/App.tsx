@@ -1,12 +1,30 @@
 import { Button } from "@/components/ui/button"
+import Login from "./pages/Login";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+
+const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/",
+    element:  <Login />,
+  },
+  
+]);
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <h2 className="text-3xl m-12">Welcome to Recruitment Platform</h2>
-      <Button variant="destructive">Click me</Button>
-    </div>
-  )
+    <>
+   
+        <RouterProvider router={router} />
+
+    
+    </>
+  );
+  
 }
 
 export default App
