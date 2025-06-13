@@ -1,11 +1,10 @@
+import { Button } from "@/components/ui/button"
 
-
-const App = () => {
+function App() {
   return (
-    <div>
-      <div className="bg-red-500">
-        App is good
-      </div>
+    <div className="flex min-h-svh flex-col items-center justify-center">
+      <h2 className="text-3xl m-12">Welcome to Recruitment Platform</h2>
+      <Button variant="destructive">Click me</Button>
     </div>
   )
 }
