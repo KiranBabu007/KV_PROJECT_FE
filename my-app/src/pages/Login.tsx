@@ -17,7 +17,7 @@ const Login = () => {
   const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
      e.preventDefault();
-      const response="admin"
+      const response="employee"
       const role = response.includes("admin") ? "admin" : "employee";
       const token = `dummy.header.${JSON.stringify({ role })}`;
       localStorage.setItem("token", token);
