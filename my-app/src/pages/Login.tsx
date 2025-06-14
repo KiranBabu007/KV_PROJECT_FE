@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import loginImage from "../assets/login.avif";
 import { useNavigate } from "react-router-dom";
+import logobg from "../assets/login-bg.png"
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Login = () => {
 
   return (
     <div className="flex h-screen w-screen items-center">
-      <div className="w-1/3 h-full flex items-center justify-center bg-blue-100">
+      <div className="w-1/3 h-full flex items-center justify-center">
         <img
           src={loginImage}
           alt="Login Image"
@@ -38,11 +39,14 @@ const Login = () => {
         />
       </div>
 
-      <div className="w-2/3 h-full flex items-center justify-center bg-white">
+      <div className="w-2/3 h-full flex items-center justify-center ">
+      <div className="absolute w-[100%] -z-10 opacity-15">
+        <img src={logobg} alt="" />
+      </div>
         <div className="w-full h-full flex flex-col items-center justify-center">
           <div className="font-mono text-4xl mb-8 text-center">
             Referral Management System
-            <p className="text-muted-foreground text-sm m-4">
+            <p className="text-muted-foreground text-sm m-4 ">
               Manage your referrals at one place
             </p>
           </div>
@@ -82,7 +86,7 @@ const Login = () => {
               </form>
             </CardContent>
             <CardFooter className="flex-col gap-2">
-              <Button type="submit" onClick={handleSubmit} className="w-full bg-blue-700">
+              <Button type="submit" onClick={handleSubmit} className="w-full bg-black">
                 Login
               </Button>
             </CardFooter>
