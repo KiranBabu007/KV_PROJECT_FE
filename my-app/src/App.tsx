@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button"
 import Login from "./pages/Login";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Admin from "./pages/admin";
+import Employee from "./pages/employee";
 
 
 const router = createBrowserRouter([
@@ -12,6 +14,14 @@ const router = createBrowserRouter([
     path: "/",
     element:  <Login />,
   },
+  {
+     path:"/admin",
+     element:<Admin/>
+  },
+  {
+      path:"employees",
+      element:<Employee/>
+  }
   
 ]);
 
