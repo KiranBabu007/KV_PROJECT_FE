@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
 import Login from "./pages/Login";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Admin from "./pages/admin";
-import EmployeeDashboard from "./pages/employee";
+import Admin from "./pages/Admin";
+import EmployeeDashboard from "./pages/Employee";
 
 
 const router = createBrowserRouter([
