@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -12,22 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import loginImage from "../assets/login.avif";
 import { useNavigate } from "react-router-dom";
-import logobg from "../assets/login-bg.png"
+import logobg from "../assets/login-bg.png";
 
 const Login = () => {
   const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
-     e.preventDefault();
-      const response="admin"
-      const role = response.includes("admin") ? "admin" : "employee";
-      const token = `dummy.header.${JSON.stringify({ role })}`;
-      localStorage.setItem("token", token);
-      if (role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/employees");
-      }
+    e.preventDefault();
+    const response = "candidate";
+    const role = response.includes("admin") ? "admin" : "candidate";
+    const token = `dummy.header.${JSON.stringify({ role })}`;
+    localStorage.setItem("token", token);
+    if (role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/candidate");
     }
+  };
 
   return (
     <div className="flex h-screen w-screen items-center">
@@ -40,9 +39,9 @@ const Login = () => {
       </div>
 
       <div className="w-2/3 h-full flex items-center justify-center ">
-      <div className="absolute w-[100%] -z-10 opacity-15">
-        <img src={logobg} alt="" />
-      </div>
+        <div className="absolute w-[100%] -z-10 opacity-15">
+          <img src={logobg} alt="" />
+        </div>
         <div className="w-full h-full flex flex-col items-center justify-center">
           <div className="font-mono text-4xl mb-8 text-center">
             Referral Management System
@@ -59,7 +58,7 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form >
+              <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
@@ -86,7 +85,11 @@ const Login = () => {
               </form>
             </CardContent>
             <CardFooter className="flex-col gap-2">
-              <Button type="submit" onClick={handleSubmit} className="w-full bg-black">
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                className="w-full bg-black"
+              >
                 Login
               </Button>
             </CardFooter>
