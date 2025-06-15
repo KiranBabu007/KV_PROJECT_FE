@@ -18,9 +18,9 @@ const Login = () => {
   const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
      e.preventDefault();
-      const response="employee"
-      const role = response.includes("admin") ? "admin" : "employee";
-      const token = `dummy.header.${JSON.stringify({ role })}`;
+      const response="admin"
+      const role = response.includes("admin") ? "admin" : "employees";
+      const token = role;
       localStorage.setItem("token", token);
       if (role === "admin") {
         navigate("/admin");
