@@ -14,7 +14,7 @@ export default function ReferralDetails({ data }: { data: ReferralData }) {
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
       <CardHeader className="mb-5">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="text-2xl flex items-center gap-2">
           <User className="h-5 w-5" />
           Application Details
         </CardTitle>

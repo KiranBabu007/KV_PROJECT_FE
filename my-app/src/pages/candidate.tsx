@@ -152,7 +152,7 @@ export default function Index() {
             {/* Recent Updates */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-2xl flex items-center gap-2">
                   <MessageCircleQuestion className="text-emerald-600" />
                   Recent Updates
                 </CardTitle>
@@ -197,7 +197,7 @@ export default function Index() {
             {/* Quick Actions */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-2xl">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <button className="w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-violet-50 hover:shadow-sm transition-all duration-200 hover-scale flex items-center gap-3">
