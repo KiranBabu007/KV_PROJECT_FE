@@ -20,7 +20,6 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
     title: '',
     description: '',
     location: '',
-    department: '',
     salary: '',
     experience: '',
     totalPositions: 1,
@@ -35,7 +34,6 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
         title: job.title,
         description: job.description,
         location: job.location,
-        department: job.department,
         salary: job.salary,
         experience: job.experience,
         totalPositions: job.totalPositions,
@@ -70,7 +68,6 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
       title: '',
       description: '',
       location: '',
-      department: '',
       salary: '',
       experience: '',
       totalPositions: 1,
@@ -103,22 +100,7 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="department">Department</Label>
-          <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select department" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Engineering">Engineering</SelectItem>
-              <SelectItem value="Product">Product</SelectItem>
-              <SelectItem value="Design">Design</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="Sales">Sales</SelectItem>
-              <SelectItem value="HR">HR</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      
 
         <div className="space-y-2">
           <Label htmlFor="location">Location</Label>

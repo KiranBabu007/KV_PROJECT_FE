@@ -20,7 +20,7 @@ const initialJobs: Job[] = [
     description: 'We are looking for an experienced software engineer to join our team.',
     requirements: ['React', 'TypeScript', '5+ years experience'],
     location: 'San Francisco, CA',
-    department: 'Engineering',
+    
     salary: '₹90,00,000 - ₹1,35,00,000',
     experience: '5+ years',
     openPositions: 2,
@@ -35,7 +35,6 @@ const initialJobs: Job[] = [
     description: 'Lead product strategy and development for our core platform.',
     requirements: ['Product Management', 'Agile', '3+ years experience'],
     location: 'New York, NY',
-    department: 'Product',
     salary: '₹75,00,000 - ₹1,05,00,000',
     experience: '3-5 years',
     openPositions: 1,

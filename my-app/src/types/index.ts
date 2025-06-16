@@ -12,14 +12,13 @@ export interface Job {
   description: string;
   requirements: string[];
   location: string;
-  department: string;
   salary: string;
   experience: string;
   openPositions: number;
   totalPositions: number;
   createdAt: Date;
   updatedAt: Date;
-  status: 'active' | 'closed';
+  status?: 'active' | 'closed';
 }
 
 

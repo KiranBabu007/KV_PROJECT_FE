@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { MapPin, Users, Calendar, Edit, Trash2, DollarSign, Clock, Building2, Ta
 import { format } from 'date-fns';
 import type { Job } from '@/types';
 import JobForm from './JobForm';
+import { useGetJobsListQuery } from '@/api-service/job/job.api.ts';
 
 // Local mock data
 const initialJobs: Job[] = [
@@ -16,7 +17,6 @@ const initialJobs: Job[] = [
     description: 'We are looking for an experienced software engineer to join our team.',
     requirements: ['React', 'TypeScript', '5+ years experience'],
     location: 'San Francisco, CA',
-    department: 'Engineering',
     salary: '₹90,00,000 - ₹1,35,00,000',
     experience: '5+ years',
     openPositions: 2,
@@ -31,7 +31,6 @@ const initialJobs: Job[] = [
     description: 'Lead product strategy and development for our core platform.',
     requirements: ['Product Management', 'Agile', '3+ years experience'],
     location: 'New York, NY',
-    department: 'Product',
     salary: '₹75,00,000 - ₹1,05,00,000',
     experience: '3-5 years',
     openPositions: 1,
@@ -43,9 +42,32 @@ const initialJobs: Job[] = [
 ];
 
 const JobList: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  // Replace the static initialJobs with API call
+  const { data: jobsData, isLoading, error } = useGetJobsListQuery({});
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (jobsData) {
+      const formattedJobs = jobsData.map(job => ({
+        id: job.id.toString(),
+        title: job.title,
+        description: job.description,
+        requirements: job.skills.split(', '), // Convert skills string to array
+        location: job.location,
+        salary: `₹${(job.salary/100000).toFixed(2)} LPA`,
+        experience: `${job.experience}+ years`,
+        openPositions: job.numOfPositions,
+        totalPositions: job.numOfPositions,
+        createdAt: new Date(job.createdAt),
+        updatedAt: new Date(job.updatedAt),
+        status: job.deletedAt ? 'closed' : 'active',
+        bonusForReferral: job.bonusForReferral
+      }));
+      setJobs(formattedJobs);
+    }
+  }, [jobsData]);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -99,6 +121,16 @@ const JobList: React.FC = () => {
     setEditingJob(null);
   };
 
+  // Add loading state
+  if (isLoading) {
+    return <div>Loading jobs...</div>;
+  }
+
+  // Add error state
+  if (error) {
+    return <div>Error loading jobs: {error.toString()}</div>;
+  }
+
   return (
     <div className="space-y-6">
       {jobs.length === 0 ? (
@@ -135,10 +167,7 @@ const JobList: React.FC = () => {
                       <MapPin className="h-4 w-4 text-blue-500" />
                       <span>{job.location}</span>
                     </span>
-                    <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
-                      <Target className="h-4 w-4 text-green-500" />
-                      <span>{job.department}</span>
-                    </span>
+                   
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <DollarSign className="h-4 w-4 text-purple-500" />
                       <span>{job.salary}</span>
