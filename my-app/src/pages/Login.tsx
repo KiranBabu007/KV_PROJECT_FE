@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Eye, EyeOff, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useLoginMutation } from '@/api-service/auth/login.api';
-
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useLoginMutation } from "@/api-service/auth/login.api";
+import { jwtDecode } from "jwt-decode";
 // interface LoginFormProps {
 //   login: (email: string, password: string) => Promise<void>;
 // }
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error,setError]=useState("")
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const navigate=useNavigate()
-  const [login,{isLoading}]=useLoginMutation()
-
+  const navigate = useNavigate();
+  const [login, { isLoading }] = useLoginMutation();
+  type MyJwtPayload = {
+    personId: number;
+    employeeId: number;
+    email: string;
+    role: string;
+    iat: number;
+    exp: number;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,21 +35,27 @@ const Login = () => {
       .then((response) => {
         console.log(response);
         localStorage.setItem("token", response?.accessToken);
-        navigate("/admin");
-      })
-      .catch((error) => {
-        setError(error.data.message);
-        console.log(error);
+        const decoded = jwtDecode<MyJwtPayload>(response?.accessToken);
+
+        console.log("decode:", decoded.role);
+        const role = decoded.role;
+
+        if (role === "ADMIN") {
+          navigate("/admin");
+        } else if (role === "EMPLOYEE") {
+          navigate("/employee");
+        }
       });
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image with Overlay */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)'
+          backgroundImage:
+            "url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80)",
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-purple-900/70 to-indigo-900/80 backdrop-blur-sm"></div>
@@ -51,32 +64,41 @@ const Login = () => {
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in">
           {/* Logo/Brand Section */}
-          <div className="text-center mb-8 animate-slide-in-right" style={{ animationDelay: '200ms' }}>
+          <div
+            className="text-center mb-8 animate-slide-in-right"
+            style={{ animationDelay: "200ms" }}
+          >
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl mb-4 animate-float">
               {/* FtoC Logo with Arrow */}
               <div className="relative">
                 <span className="text-2xl font-bold text-white">F</span>
                 <div className="absolute top-1/2 left-6 transform -translate-y-1/2">
-                  <svg 
-                    width="16" 
-                    height="12" 
-                    viewBox="0 0 16 12" 
-                    fill="none" 
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
                     className="text-yellow-400"
                   >
-                    <path 
-                      d="M1 6h14m-6-5l5 5-5 5" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
+                    <path
+                      d="M1 6h14m-6-5l5 5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                   </svg>
@@ -93,7 +115,10 @@ const Login = () => {
           </div>
 
           {/* Login Card */}
-          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-scale-in" style={{ animationDelay: '400ms' }}>
+          <Card
+            className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-scale-in"
+            style={{ animationDelay: "400ms" }}
+          >
             <CardHeader className="space-y-1 pb-6">
               <div className="flex items-center justify-center mb-4">
                 <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
@@ -105,7 +130,7 @@ const Login = () => {
                 Enter your credentials to access your dashboard
               </p>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
@@ -122,15 +147,18 @@ const Login = () => {
                     className="bg-white/10 border-white/20 text-white placeholder-white/50 backdrop-blur-sm focus:bg-white/15 focus:border-white/40 transition-all duration-300"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white/90 font-medium">
+                  <Label
+                    htmlFor="password"
+                    className="text-white/90 font-medium"
+                  >
                     Password
                   </Label>
                   <div className="relative">
                     <Input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -142,14 +170,18 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-200"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0" 
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0"
                   disabled={loading}
                 >
                   {loading ? (
@@ -158,7 +190,7 @@ const Login = () => {
                       <span>Signing in...</span>
                     </div>
                   ) : (
-                    'Sign In'
+                    "Sign In"
                   )}
                 </Button>
               </form>
@@ -167,7 +199,10 @@ const Login = () => {
               <div className="pt-4 border-t border-white/10">
                 <div className="bg-blue-500/10 backdrop-blur-sm rounded-lg p-4 border border-blue-400/20">
                   <p className="text-xs text-blue-100/80 text-center leading-relaxed">
-                    <span className="font-semibold text-blue-200">Demo Mode:</span> Use any email and password to login.
+                    <span className="font-semibold text-blue-200">
+                      Demo Mode:
+                    </span>{" "}
+                    Use any email and password to login.
                     <br />
                     Switch between roles using the header menu after signing in.
                   </p>
@@ -188,7 +223,10 @@ const Login = () => {
           </Card>
 
           {/* Bottom Text */}
-          <div className="text-center mt-8 animate-fade-in" style={{ animationDelay: '600ms' }}>
+          <div
+            className="text-center mt-8 animate-fade-in"
+            style={{ animationDelay: "600ms" }}
+          >
             <p className="text-white/60 text-sm">
               Powered by FtoC • Connecting friends as colleagues
             </p>
