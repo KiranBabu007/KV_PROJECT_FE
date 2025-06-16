@@ -26,8 +26,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Label } from "@radix-ui/react-label";
 const EmployeeDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  // Referral form state
+  const [referForm, setReferForm] = useState(false);
+  const [refName, setRefName] = useState("");
+  const [refEmail, setRefEmail] = useState("");
+  const [refPhone,setRefPhone]=useState("")
+  const [refNote, setRefNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // Mock data
   const mockNotifications = [
     {
@@ -183,7 +191,7 @@ const EmployeeDashboard = () => {
             Refer great candidates and track your referrals
           </p>
         </div>
-        <Popover>
+        {/* <Popover>
           <PopoverTrigger className="mr-5 ">
             <Button
               variant="ghost"
@@ -220,8 +228,9 @@ const EmployeeDashboard = () => {
               )}
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
       </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ml-2 mr-2">
         {stats.map((stat, index) => (
@@ -250,92 +259,179 @@ const EmployeeDashboard = () => {
           <TabsTrigger value="jobs">Available Jobs</TabsTrigger>
           <TabsTrigger value="referrals">My Referrals</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="jobs" className="space-y-6">
-          <Card>
+        {/* for candidate form */}
+        {referForm && (
+          <Card className="shadow-lg">
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Open Positions</CardTitle>
-                  <CardDescription>
-                    Find great opportunities to refer your network
-                  </CardDescription>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search jobs..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
-                  />
-                </div>
-              </div>
+              <CardTitle>Refer a Candidate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6">
-                {filteredJobs.map((job) => (
-                  <Card key={job.id} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {job.title}
-                          </h3>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-                            <div className="flex items-center gap-1">
-                              <Briefcase className="h-4 w-4" />
-                              {job.department}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
-                              {job.location}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-4 w-4" />
-                              {job.salary}
-                            </div>
-                          </div>
-                          <p className="text-gray-700 mb-3">
-                            {job.description}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {job.requirements.map((req, index) => (
-                              <Badge key={index} variant="secondary">
-                                {req}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="text-right ml-6">
-                          <Button className="w-full">
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Refer Friend
-                          </Button>
-                          <div className="flex items-center  gap-1 mt-5 border-2 justify-items-center rounded-2xl">
-                            <User className="h-4 w-4 mr-2  ml-1.5" />{" "}
-                           <p className="font-medium">{job.openings}</p> 
-                            <p className="font-medium">Positions</p>
-                          </div>
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-5">
-                            <p className="text-sm text-green-600 font-medium">
-                              Referral Bonus
-                            </p>
-                            <p className="text-lg font-bold text-green-800 ">
-                              {job.referralBonus}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="space-y-4">
+                <form className="space-y-4">
+                  <div>
+                    <Label htmlFor="refName">Candidate Name</Label>
+                    <Input
+                      id="refName"
+                      value={refName}
+                      onChange={(e) => setRefName(e.target.value)}
+                      required
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="refEmail">Email</Label>
+                    <Input
+                      id="refEmail"
+                      type="email"
+                      value={refEmail}
+                      onChange={(e) => setRefEmail(e.target.value)}
+                      required
+                      placeholder="Email address"
+                    />
+                  </div>
+                    <div>
+                    <Label htmlFor="refEmail">Phone Number</Label>
+                    <Input
+                      id="refPhone"
+                      type="text"
+                      value={refPhone}
+                      onChange={(e) => setRefPhone(e.target.value)}
+                      required
+                      placeholder="phone"
+                    />
+                  </div>
+                  <div>
+                <Label htmlFor="resumeUpload" className="block mb-1">Resume (PDF or DOC/DOCX)</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="resumeUpload"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                  
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+            </div>
+                  <div>
+                    <Label htmlFor="refNote">Note (optional)</Label>
+                    <Input
+                      id="refNote"
+                      value={refNote}
+                      onChange={(e) => setRefNote(e.target.value)}
+                      placeholder="Recommendation note"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={isSubmitting}
+                      onClick={() => setReferForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 text-white"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit Referral"}
+                    </Button>
+                  </div>
+                </form>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
+        {!referForm && (
+          <TabsContent value="jobs" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Open Positions</CardTitle>
+                    <CardDescription>
+                      Find great opportunities to refer your network
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Search className="h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search jobs..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-64"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6">
+                  {filteredJobs.map((job) => (
+                    <Card key={job.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                              {job.title}
+                            </h3>
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                              <div className="flex items-center gap-1">
+                                <Briefcase className="h-4 w-4" />
+                                {job.department}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {job.location}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4" />
+                                {job.salary}
+                              </div>
+                            </div>
+                            <p className="text-gray-700 mb-3">
+                              {job.description}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {job.requirements.map((req, index) => (
+                                <Badge key={index} variant="secondary">
+                                  {req}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
 
+                          <div className="text-right ml-6">
+                            <Button
+                              className="w-full"
+                              onClick={() => setReferForm(true)}
+                            >
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Refer Friend
+                            </Button>
+                            <div className="flex items-center  gap-1 mt-5 border-2 justify-items-center rounded-2xl">
+                              <User className="h-4 w-4 mr-2  ml-1.5" />{" "}
+                              <p className="font-medium">{job.openings}</p>
+                              <p className="font-medium">Positions</p>
+                            </div>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-5">
+                              <p className="text-sm text-green-600 font-medium">
+                                Referral Bonus
+                              </p>
+                              <p className="text-lg font-bold text-green-800 ">
+                                {job.referralBonus}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
         <TabsContent value="referrals" className="space-y-6">
           <Card>
             <CardHeader>
