@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseApi = createApi({
-  reducerPath: "employeeApi",
-  tagTypes:["EMPLOYEES","EMPLOYEES_DETAILS","DEPARTMENT"],
+  reducerPath: "globalApi",
+  tagTypes:['JOBS'],
   baseQuery: fetchBaseQuery({
     baseUrl: "https://recruitment-platform-backend-production.up.railway.app",
 

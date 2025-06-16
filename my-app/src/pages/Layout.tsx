@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { LogOut, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
@@ -82,18 +82,24 @@ const Layout: React.FC<LayoutProps> = ({
                   <p className="text-xs text-gray-500">Friend to Colleague</p>
                 </div>
               </div>
-              <Badge className={getRoleColor(user.role)}>
-                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-              </Badge>
+              {
+
+              /* <Badge className={getRoleColor(user.role)}>
+                {"test"}
+              </Badge> */
+
+              }
             </div>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
              
 
               <NotificationDropdown 
+
                 user={user}
                 notifications={notifications}
                 markNotificationRead={markNotificationRead}
+
               />
 
               <DropdownMenu>
