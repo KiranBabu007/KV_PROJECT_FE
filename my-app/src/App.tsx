@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./pages/Login";
-import Index from "./pages/Index";
+
 import type { User, Notification } from "@/types";
 import Layout from "./pages/Layout";
 import Admin from "./pages/Admin";
-import Employees from "./pages/Employee";
+// import Employees from "./pages/employee/Employee";
 import Candidate from "./pages/Candidate";
 import { Provider } from "react-redux";
 import store from "./store/store";
+import EmployeeDashboard from "./pages/employee/Employee";
 
 // Mock notifications
 const mockNotifications: Notification[] = [
@@ -123,7 +124,7 @@ function App() {
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
-          <Employees />
+          {user && <EmployeeDashboard user={user} />}
         </Layout>
       ),
     },

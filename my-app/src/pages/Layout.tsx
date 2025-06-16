@@ -27,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({
   children, 
   user, 
   logout, 
-  switchRole, 
+ 
   notifications, 
   markNotificationRead 
 }) => {
