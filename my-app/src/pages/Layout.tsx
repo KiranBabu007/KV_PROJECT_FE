@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings, Sparkles } from 'lucide-react';
+import { LogOut, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
