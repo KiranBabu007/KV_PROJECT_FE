@@ -218,7 +218,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
           <TabsContent value="jobs" className="animate-fade-in">
             {selectedJobForReferral ? (
               <Card className="glass border-0 shadow-xl">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r p-4 from-blue-50 to-indigo-50 rounded-t-lg">
                   <div className="flex justify-between items-center">
                     <div>
                       <CardTitle className="text-2xl text-gray-900 flex items-center">
