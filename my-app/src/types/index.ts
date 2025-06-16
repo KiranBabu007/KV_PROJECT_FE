@@ -34,3 +34,37 @@ export interface Notification {
   relatedId?: string;
 }
 
+
+
+export interface Referral {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  referrerId: string;
+  referrerName: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  resumeUrl?: string;
+  status: 'submitted' | 'under_review' | 'interview_scheduled' | 'accepted' | 'declined';
+  submittedAt: Date;
+  updatedAt: Date;
+  referralCode: string;
+  bonusEligible: boolean;
+  bonusPaid: boolean;
+  notes?: string;
+}
+
+
+
+export interface Bonus {
+  id: string;
+  referralId: string;
+  referrerId: string;
+  amount: number;
+  eligibleDate: Date;
+  paidDate?: Date;
+  status: 'pending' | 'eligible' | 'paid';
+}
+
+

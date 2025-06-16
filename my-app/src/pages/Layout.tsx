@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings, Sparkles } from 'lucide-react';
+import { LogOut, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,38 +88,7 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="bg-white/70 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Switch Role
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white/95 backdrop-blur-lg border-gray-200/50 shadow-xl">
-                  <DropdownMenuItem 
-                    onClick={() => switchRole('admin')}
-                    className="hover:bg-red-50 focus:bg-red-50"
-                  >
-                    Admin
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => switchRole('employee')}
-                    className="hover:bg-blue-50 focus:bg-blue-50"
-                  >
-                    Employee
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => switchRole('candidate')}
-                    className="hover:bg-green-50 focus:bg-green-50"
-                  >
-                    Candidate
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+             
 
               <NotificationDropdown 
                 user={user}
