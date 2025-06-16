@@ -7,6 +7,8 @@ import Layout from "./pages/Layout";
 import Admin from "./pages/Admin";
 import Employees from "./pages/Employee";
 import Candidate from "./pages/Candidate";
+import { Provider } from "react-redux";
+import store from "./store/store";
 
 // Mock notifications
 const mockNotifications: Notification[] = [
@@ -127,7 +129,14 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return(
+    <>
+    <Provider store={store}>
+      <RouterProvider router={router} />;
+      </Provider></>
+
+
+  ) 
 }
 
 export default App;
