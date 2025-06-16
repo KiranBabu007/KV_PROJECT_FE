@@ -258,127 +258,209 @@ const ReferralManagement: React.FC = () => {
               if (!referral) return null;
 
               return (
-                <Card className="bg-white/90 backdrop-blur-sm shadow-xl border-0">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                        <User className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">Referral Details</CardTitle>
-                        <p className="text-sm text-gray-600">Manage this referral</p>
+                <Card className="overflow-hidden shadow-2xl border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50">
+                  <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
+                          <User className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl text-white font-bold">
+                            {referral.candidateName}
+                          </CardTitle>
+                          <p className="text-blue-100 font-medium">{referral.jobTitle}</p>
+                          <p className="text-blue-200 text-sm flex items-center mt-1">
+                            <span className="font-mono bg-white/20 px-2 py-1 rounded text-xs mr-2">
+                              {referral.referralCode}
+                            </span>
+                            • Referred by {referral.referrerName}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6 p-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-800 flex items-center">
-                        <Award className="h-4 w-4 mr-2" />
-                        Status
-                      </label>
+                  
+                  <CardContent className="p-6 space-y-6">
+                    {/* Status Update Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-gray-800 flex items-center">
+                          <Award className="h-4 w-4 mr-2 text-blue-600" />
+                          Status Management
+                        </label>
+                        <Badge className={`${getStatusColor(referral.status)} border px-3 py-1.5 flex items-center gap-1 font-medium`}>
+                          {getStatusIcon(referral.status)}
+                          {referral.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
                       <Select 
                         value={referral.status} 
                         onValueChange={(value) => handleStatusUpdate(referral.id, value)}
                       >
-                        <SelectTrigger className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500">
+                        <SelectTrigger className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 shadow-xl">
-                          <SelectItem value="submitted">📋 Submitted</SelectItem>
-                          <SelectItem value="under_review">🔍 Under Review</SelectItem>
-                          <SelectItem value="interview_scheduled">📅 Interview Scheduled</SelectItem>
-                          <SelectItem value="accepted">✅ Accepted</SelectItem>
-                          <SelectItem value="declined">❌ Declined</SelectItem>
+                        <SelectContent className="bg-white border-gray-200 shadow-2xl rounded-lg">
+                          <SelectItem value="submitted" className="hover:bg-blue-50 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4 text-blue-600" />
+                              <span>📋 Submitted</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="under_review" className="hover:bg-yellow-50 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <Search className="h-4 w-4 text-yellow-600" />
+                              <span>🔍 Under Review</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="interview_scheduled" className="hover:bg-purple-50 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="h-4 w-4 text-purple-600" />
+                              <span>📅 Interview Scheduled</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="accepted" className="hover:bg-green-50 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <Award className="h-4 w-4 text-green-600" />
+                              <span>✅ Accepted</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="declined" className="hover:bg-red-50 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <User className="h-4 w-4 text-red-600" />
+                              <span>❌ Declined</span>
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
+                    {/* Information Cards Grid */}
                     <div className="grid grid-cols-1 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                        <label className="text-sm font-semibold text-gray-800 flex items-center">
-                          <User className="h-4 w-4 mr-2" />
-                          Candidate Information
-                        </label>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Name:</span>
-                            <span className="font-medium">{referral.candidateName}</span>
+                      {/* Candidate Information */}
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center mb-4">
+                          <div className="p-2 bg-blue-500 rounded-lg mr-3">
+                            <User className="h-4 w-4 text-white" />
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Email:</span>
-                            <span className="font-medium">{referral.candidateEmail}</span>
+                          <h3 className="font-bold text-gray-800">Candidate Details</h3>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Name</span>
+                            <span className="font-semibold text-gray-800">{referral.candidateName}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Phone:</span>
-                            <span className="font-medium">{referral.candidatePhone}</span>
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium flex items-center">
+                              <Mail className="h-3 w-3 mr-1" />
+                              Email
+                            </span>
+                            <span className="font-semibold text-blue-600">{referral.candidateEmail}</span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium flex items-center">
+                              <Phone className="h-3 w-3 mr-1" />
+                              Phone
+                            </span>
+                            <span className="font-semibold text-gray-800">{referral.candidatePhone}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-blue-50 p-4 rounded-lg space-y-3">
-                        <label className="text-sm font-semibold text-gray-800 flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          Referrer & Position
-                        </label>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Referrer:</span>
-                            <span className="font-medium">{referral.referrerName}</span>
+                      {/* Referrer & Position Information */}
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center mb-4">
+                          <div className="p-2 bg-purple-500 rounded-lg mr-3">
+                            <Users className="h-4 w-4 text-white" />
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Position:</span>
-                            <span className="font-medium">{referral.jobTitle}</span>
+                          <h3 className="font-bold text-gray-800">Position & Referrer</h3>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Position</span>
+                            <span className="font-semibold text-gray-800">{referral.jobTitle}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Code:</span>
-                            <span className="font-mono bg-white px-2 py-1 rounded text-xs">{referral.referralCode}</span>
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Referrer</span>
+                            <span className="font-semibold text-purple-600">{referral.referrerName}</span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Code</span>
+                            <span className="font-mono bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
+                              {referral.referralCode}
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <label className="text-sm font-semibold text-gray-800 flex items-center mb-2">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Timeline
-                        </label>
-                        <p className="text-sm text-gray-700">
-                          Submitted on {format(referral.submittedAt, 'PPP')}
-                        </p>
+                      {/* Timeline Information */}
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center mb-4">
+                          <div className="p-2 bg-green-500 rounded-lg mr-3">
+                            <Calendar className="h-4 w-4 text-white" />
+                          </div>
+                          <h3 className="font-bold text-gray-800">Timeline</h3>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Submitted</span>
+                            <span className="font-semibold text-green-600">
+                              {format(referral.submittedAt, 'PPP')}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                            <span className="text-gray-600 font-medium">Last Updated</span>
+                            <span className="font-semibold text-gray-800">
+                              {format(referral.updatedAt, 'PPP')}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Action Buttons */}
                     {referral.resumeUrl && (
-                      <div>
-                        <Button variant="outline" size="sm" className="w-full bg-white hover:bg-gray-50 border-gray-200">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Resume
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 font-medium"
+                      >
+                        <FileText className="h-4 w-4 mr-2 text-blue-600" />
+                        View Resume
+                      </Button>
                     )}
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-800 flex items-center">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Notes
+                    {/* Notes Section */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-gray-800 flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-gray-600" />
+                        Administrative Notes
                       </label>
                       <Textarea
-                        placeholder="Add notes about this referral..."
-                        className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                        placeholder="Add internal notes about this referral (candidate assessment, interview feedback, etc.)..."
+                        className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 min-h-[120px] transition-all duration-200 resize-none"
                         value={referral.notes || ''}
                         onChange={(e) => updateReferral(referral.id, { notes: e.target.value })}
                       />
+                      <p className="text-xs text-gray-500">
+                        These notes are for internal use only and will not be visible to the referrer or candidate.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
               );
             })()
           ) : (
-            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+            <Card className="bg-gradient-to-br from-gray-50 to-blue-50 border-2 border-dashed border-gray-300 shadow-lg">
               <CardContent className="p-12 text-center">
-                <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-2">Select a referral to view details</p>
-                <p className="text-gray-400 text-sm">
-                  Click on any referral from the list to manage its details and status.
+                <div className="animate-bounce mb-4">
+                  <Search className="h-16 w-16 text-gray-400 mx-auto" />
+                </div>
+                <p className="text-gray-600 text-lg font-medium mb-2">Select a referral to manage</p>
+                <p className="text-gray-500 text-sm">
+                  Click on any referral from the list to view and update its details.
                 </p>
               </CardContent>
             </Card>
