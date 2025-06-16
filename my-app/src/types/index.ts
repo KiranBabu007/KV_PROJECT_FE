@@ -53,6 +53,8 @@ export interface Referral {
   bonusEligible: boolean;
   bonusPaid: boolean;
   notes?: string;
+  trackingToken?: string
+
 }
 
 
