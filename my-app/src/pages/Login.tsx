@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLoginMutation } from '@/api-service/auth/login.api';
 
 // interface LoginFormProps {
 //   login: (email: string, password: string) => Promise<void>;
@@ -16,21 +17,24 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate=useNavigate()
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [login, { isLoading }] = useLoginMutation();
+  const [error,setError]=useState('')
+  const handleSubmit =  async (e) => {
     e.preventDefault();
-    localStorage.setItem("token","loggedIn")
-    // setLoading(true);
-    
-    // try {
-    //   await login(email, password);
-    // } catch (error) {
-    //   console.error('Login failed:', error);
-    // } finally {
-    //   setLoading(false);
-    // }
-    navigate("/admin")
+
+    await login({ email: email, password: password })
+      .unwrap()
+      .then((response) => {
+        console.log(response);
+        localStorage.setItem("token", response?.accessToken);
+        navigate("/admin");
+      })
+      .catch((error) => {
+        setError(error.data.message);
+        console.log(error);
+      });
   };
+
 
   return (
     <div className="min-h-screen relative overflow-hidden">
