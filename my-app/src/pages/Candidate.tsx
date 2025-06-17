@@ -1,9 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import Notifications from "@/components/Notifications";
-import ReferralTimeline from "@/components/ReferralTimeline";
-import ReferralDetails from "@/components/ReferralDetails";
 import {
   PartyPopper,
   Users,
@@ -17,17 +14,85 @@ import {
 import { useGetReferralQuery } from "@/api-service/candidate/candidate.api";
 import { useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
+import Notifications from "@/components/candidate/Notifications";
+import ReferralTimeline from "@/components/candidate/ReferralTimeline";
+import ReferralDetails from "@/components/candidate/ReferralDetails";
+import type { ReferralsResponse } from "@/api-service/candidate/types";
 
 // Referral Data (Static)
-const referralData = {
-  id: "REF-2024-001",
-  candidateName: "John Doe",
-  position: "Senior Software Engineer",
-  referredBy: "Sarah Johnson",
-  submittedDate: "2024-01-15",
-  currentStatus: "Interview Round 2",
-  failed: false,
+// const referralData = {
+//   id: "REF-2024-001",
+//   candidateName: "John Doe",
+//   position: "Senior Software Engineer",
+//   referredBy: "Sarah Johnson",
+//   submittedDate: "2024-01-15",
+//   currentStatus: "Interview Round 2",
+//   failed: false,
+// };
+
+type FormattedStep = {
+  name: string;
+  date: string;
+  rawStatus: string;
 };
+
+type ReferralData = {
+  id: string;
+  candidateName: string;
+  position: string;
+  referredBy: string;
+  submittedDate: string;
+  currentStatus: string;
+  failed: boolean;
+  formattedSteps: FormattedStep[];
+};
+
+const statusMap: Record<string, string> = {
+  "Referral Submitted": "Referral Submitted",
+  "Referral Under Review": "Referral Under Review",
+  "Referral Accepted": "Referral Accepted",
+  "Interviews Round 1": "Interview Round 1",
+  "Interviews Round 2": "Interview Round 2",
+  //"Interviews Round 3": "Interview Round 3",
+  Rejected: "Final Result",
+  Accepted: "Final Result",
+};
+
+function buildReferralData(apiResponse: ReferralsResponse): ReferralData {
+  const {
+    candidateName,
+    currentStatus,
+    failedAt,
+    histories,
+    id,
+    position,
+    referredBy,
+    submittedDate,
+  } = apiResponse;
+
+  const formattedSteps: FormattedStep[] = histories.map((entry) => ({
+    name: statusMap[entry.status] || entry.status,
+    date: new Date(entry.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    rawStatus: entry.status,
+  }));
+
+  const failed = currentStatus === "Rejected";
+
+  return {
+    id: `REF-${id}`.padStart(10, "0"),
+    candidateName,
+    position,
+    referredBy,
+    submittedDate: new Date(submittedDate).toISOString().split("T")[0],
+    currentStatus: statusMap[failedAt || currentStatus] || currentStatus,
+    failed,
+    formattedSteps,
+  };
+}
 
 // Define all step names (static)
 const allSteps = [
@@ -36,22 +101,72 @@ const allSteps = [
   "Referral Accepted",
   "Interview Round 1",
   "Interview Round 2",
-  "Interview Round 3",
-  "Final Result", // outcome, not part of progress calculation
+  "Final Result", // final step (conditionally becomes "Completed")
 ];
+
+function buildFakeDatesFromHistories(
+  histories: { status: string; createdAt: string }[],
+  failedAt?: string
+): string[] {
+  const stepToDateMap: Record<string, string> = {};
+
+  // Step 1: Convert raw status -> formatted date
+  for (const h of histories) {
+    if (!stepToDateMap[h.status]) {
+      const formatted = new Date(h.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      stepToDateMap[h.status] = formatted;
+    }
+  }
+
+  // Step 2: Check if status was Accepted
+  const isAccepted = histories.some((h) => h.status === "Accepted");
+  const acceptedDate = stepToDateMap["Accepted"] || "";
+
+  const result: string[] = [];
+
+  for (let i = 0; i < allSteps.length; i++) {
+    const step = allSteps[i];
+
+    // Stop early if failed and step is after the failure
+    if (failedAt && !isAccepted) {
+      const stopIndex = allSteps.findIndex((s) => s === statusMap[failedAt]);
+      if (i > stopIndex) break;
+    }
+
+    const raw = Object.entries(statusMap).find(([, v]) => v === step)?.[0];
+
+    if (raw && stepToDateMap[raw]) {
+      result.push(stepToDateMap[raw]);
+    } else if (isAccepted) {
+      result.push(acceptedDate); // Fill accepted date if available
+    } else {
+      result.push(""); // No date for step
+    }
+  }
+
+  return result;
+}
 
 // Fake corresponding dates (static)
-const fakeDates = [
-  "Jan 15, 2024",
-  "Jan 18, 2024",
-  "Jan 25, 2024",
-  "Feb 5, 2024",
-  "Feb 10, 2024",
-  "Feb 12, 2024",
-];
+// const fakeDates = [
+//   "Jan 15, 2024",
+//   "Jan 18, 2024",
+//   "Jan 25, 2024",
+//   "Feb 5, 2024",
+//   "Feb 10, 2024",
+//   "Feb 12, 2024",
+// ];
 
 // Updated generateStatusSteps
-function generateStatusSteps(currentCompletedStatus: string, failed: boolean) {
+function generateStatusSteps(
+  currentCompletedStatus: string,
+  failed: boolean,
+  fakeDates: string[]
+) {
   const currentIndex = allSteps.findIndex(
     (step) => step === currentCompletedStatus
   );
@@ -60,29 +175,29 @@ function generateStatusSteps(currentCompletedStatus: string, failed: boolean) {
     let status: "completed" | "current" | "pending" | "failed";
     let name = step;
 
-    const isFinalStep = step === "Final Result";
     const isPast = index < currentIndex;
     const isCurrent = index === currentIndex;
 
-    // Final Result naming logic
-    if (isFinalStep) {
-      if (failed || currentCompletedStatus === "Interview Round 3") {
-        name = failed ? "Failed" : "Completed"; // Change label only at end
-        status = failed ? "failed" : "completed";
-      } else {
-        name = "Final Result"; // Keep neutral label during progress
-        status = "pending";
-      }
+    // ✅ Special case: If status is "Accepted", mark all as completed
+    if (currentCompletedStatus === "Accepted") {
+      name = step === "Final Result" ? "Accepted" : step;
+      status = "completed";
+    } else if (step === "Final Result" && failed) {
+      name = "Failed";
+      status = "failed";
+    } else if (failed && isCurrent) {
+      status = "failed";
     } else if (isPast) {
       status = "completed";
     } else if (isCurrent) {
-      status = failed ? "failed" : "completed";
+      status = "completed";
     } else if (index === currentIndex + 1 && !failed) {
       status = "current";
     } else {
       status = "pending";
     }
 
+    // If failed, mark all future steps as failed
     if (failed && index > currentIndex) {
       status = "failed";
     }
@@ -97,16 +212,23 @@ function generateStatusSteps(currentCompletedStatus: string, failed: boolean) {
 
 // Progress calculation excluding "Final Result"
 function calculateProgress(currentStatus: string, failed: boolean): number {
-  const processSteps = allSteps.slice(0, 6); // Exclude Final Result
-  const currentIndex = processSteps.findIndex((s) => s === currentStatus);
+  const totalSteps = allSteps.length;
+  const currentIndex = allSteps.findIndex((s) => s === currentStatus);
 
-  let completedCount = failed ? currentIndex : currentIndex + 1;
+  let completedCount = 0;
+
+  if (currentStatus === "Accepted") {
+    completedCount = totalSteps;
+  } else if (failed) {
+    completedCount = currentIndex;
+  } else {
+    completedCount = currentIndex + 1;
+  }
 
   if (completedCount < 0) completedCount = 0;
-  if (completedCount > processSteps.length)
-    completedCount = processSteps.length;
+  if (completedCount > totalSteps) completedCount = totalSteps;
 
-  return Math.round((completedCount / processSteps.length) * 100);
+  return Math.round((completedCount / totalSteps) * 100);
 }
 
 // Status color class
@@ -127,16 +249,29 @@ function getStatusColor(
 
 // Main Component
 export default function Index() {
-  const params = useParams();
-  const { data } = useGetReferralQuery(
-    params.id ? { id: params.id } : skipToken
-  );
+  let { id } = useParams();
+  console.log("🚀 ~ Index ~ params.id:", id);
+
+  const { data } = useGetReferralQuery(id ? id : skipToken);
   console.log("🚀 ~ data:", data);
+  const referralData: ReferralData | null = data
+    ? buildReferralData(data)
+    : null;
+  if (!referralData) {
+    return <div>Referral Data not loaded..</div>; // Or show a skeleton/spinner
+  }
+
+  const fakeDates = data
+    ? buildFakeDatesFromHistories(data.histories, data.failedAt)
+    : [];
+  console.log("Fake_dates: ", fakeDates);
 
   const statusSteps = generateStatusSteps(
     referralData.currentStatus,
-    referralData.failed
+    referralData.failed,
+    fakeDates
   );
+  console.log("statusSteps: ", statusSteps);
   const progress = calculateProgress(
     referralData.currentStatus,
     referralData.failed
@@ -180,7 +315,7 @@ export default function Index() {
           <Badge className="text-lg px-6 py-2 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 shadow font-semibold transition-colors duration-200 hover-scale animate-fade-in-up">
             {referralData.id}
           </Badge>
-          <Notifications id={params.id || ""} />
+          <Notifications id={id || ""} />
         </div>
       </div>
 

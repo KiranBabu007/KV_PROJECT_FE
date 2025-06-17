@@ -50,9 +50,8 @@ const initialNotifications: NotificationType[] = [
 ];
 
 export default function Notifications({ id }: { id: string }) {
-  const { data } = useGetReferralNotificationsQuery(
-    id ? { id: id } : skipToken
-  );
+  const { data } = useGetReferralNotificationsQuery(id ? id : skipToken);
+  console.log("🚀 ~ Notifications ~ data:", data);
 
   const [notifications, setNotifications] =
     useState<NotificationType[]>(initialNotifications);

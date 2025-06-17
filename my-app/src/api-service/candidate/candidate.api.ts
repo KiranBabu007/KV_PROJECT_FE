@@ -1,23 +1,15 @@
 import baseApi from "../api";
-import type {
-  NotificationsPayload,
-  NotificationsResponse,
-  ReferralsPayload,
-  ReferralsResponse,
-} from "./types";
+import type { NotificationsResponse, ReferralsResponse } from "./types";
 
 export const referralApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getReferral: builder.query<ReferralsResponse, ReferralsPayload>({
+    getReferral: builder.query<ReferralsResponse, string>({
       query: (payload) => ({
         url: `/referral/response/${payload}`,
         method: "GET",
       }),
     }),
-    getReferralNotifications: builder.query<
-      NotificationsResponse,
-      NotificationsPayload
-    >({
+    getReferralNotifications: builder.query<NotificationsResponse, string>({
       query: (payload) => ({
         url: `/notificatons/referral/${payload}`,
         method: "GET",

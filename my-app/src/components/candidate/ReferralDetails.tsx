@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, Building, Calendar } from "lucide-react";
+import { User, Calendar } from "lucide-react";
 
 type ReferralData = {
   candidateName: string;
