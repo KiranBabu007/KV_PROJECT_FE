@@ -50,6 +50,7 @@ interface EmployeeDashboardProps {
 
 const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
   const { data: jobs = [], isLoading: jobsLoading } = useGetJobsListQuery({});
+  
   const { data: bonuses = [], isLoading: bonusesLoading } = useGetEmployeeBonusesQuery("1");
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<

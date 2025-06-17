@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-// import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { LogOut, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
@@ -10,6 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {jwtDecode} from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 import type { User, Notification } from '@/types';
 import NotificationDropdown from '@/components/NotificationDropdown';
@@ -17,22 +19,51 @@ import NotificationDropdown from '@/components/NotificationDropdown';
 interface LayoutProps {
   children: React.ReactNode;
   user: User | null;
-  logout: () => void;
-  switchRole: (role: 'admin' | 'employee' | 'candidate') => void;
   notifications: Notification[];
   markNotificationRead: (id: string) => void;
 }
 
+  type MyJwtPayload = {
+    personId: number;
+    employeeId: number;
+    email: string;
+    role: string;
+    iat: number;
+    exp: number;
+  };
+
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
   user, 
-  logout, 
- 
   notifications, 
   markNotificationRead 
 }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+  
+ 
+    // Navigate to login page
+    navigate('/login');
+  };
+
+  // Add this function to get role from token
+  const getUserRole = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return '';
+    
+    try {
+      const decoded = jwtDecode<MyJwtPayload>(token);
+      return decoded.role.toLowerCase();
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return '';
+    }
+  };
+
   const getRoleColor = (role: string) => {
-    switch (role) {
+    switch (role.toLowerCase()) {
       case 'admin': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg';
       case 'employee': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg';
       case 'candidate': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg';
@@ -40,7 +71,9 @@ const Layout: React.FC<LayoutProps> = ({
     }
   };
   
-  if(!user) return
+  if(!user) return null;
+
+  const userRole = getUserRole();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
@@ -82,13 +115,13 @@ const Layout: React.FC<LayoutProps> = ({
                   <p className="text-xs text-gray-500">Friend to Colleague</p>
                 </div>
               </div>
-              {
-
-              /* <Badge className={getRoleColor(user.role)}>
-                {"test"}
-              </Badge> */
-
-              }
+              <div className="flex items-center space-x-4 animate-fade-in">
+                {userRole && (
+                  <Badge className={getRoleColor(userRole)}>
+                    {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
@@ -130,7 +163,7 @@ const Layout: React.FC<LayoutProps> = ({
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="text-red-600 hover:bg-red-50 focus:bg-red-50"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

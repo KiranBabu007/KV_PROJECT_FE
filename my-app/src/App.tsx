@@ -68,18 +68,7 @@ function App() {
     localStorage.setItem("user", JSON.stringify(mockUser));
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
 
-  const switchRole = (role: "admin" | "employee" | "candidate") => {
-    if (user) {
-      const updatedUser = { ...user, role };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-  };
 
   const markNotificationRead = (id: string) => {
     setNotifications((prev) =>
@@ -112,8 +101,7 @@ function App() {
       element: (
         <Layout
           user={user}
-          logout={logout}
-          switchRole={switchRole}
+         
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -126,8 +114,8 @@ function App() {
       element: (
         <Layout
           user={user}
-          logout={logout}
-          switchRole={switchRole}
+          
+          
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -140,8 +128,8 @@ function App() {
       element: (
         <Layout
           user={user}
-          logout={logout}
-          switchRole={switchRole}
+
+          
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
