@@ -10,6 +10,8 @@ import Candidate from "./pages/Candidate";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import EmployeeDashboard from "./pages/employee/Employee";
+import JobDetails from "./pages/JobDetails";
+// import JobDetails from "./pages/JobDetails";
 
 // Mock notifications
 const mockNotifications: Notification[] = [
@@ -128,16 +130,29 @@ function App() {
         </Layout>
       ),
     },
+    {
+      path: "/job/:jobId",
+      element: (
+        <Layout
+          user={user}
+          logout={logout}
+          switchRole={switchRole}
+          notifications={notifications}
+          markNotificationRead={markNotificationRead}
+        >
+          <JobDetails />
+        </Layout>
+      ),
+    },
   ]);
 
-  return(
+  return (
     <>
-    <Provider store={store}>
-      <RouterProvider router={router} />;
-      </Provider></>
-
-
-  ) 
+      <Provider store={store}>
+        <RouterProvider router={router} />;
+      </Provider>
+    </>
+  );
 }
 
 export default App;
