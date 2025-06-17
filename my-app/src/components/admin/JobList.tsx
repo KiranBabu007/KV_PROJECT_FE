@@ -38,6 +38,7 @@ import { useAddJobMutation, useDeleteJobMutation, useGetJobsListQuery, usePatchJ
 const JobList: React.FC = () => {
   const { data: jobsData, isLoading, error, refetch } = useGetJobsListQuery({});
   const [jobs, setJobs] = useState<Job[]>([]);
+ 
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -307,7 +308,7 @@ const JobList: React.FC = () => {
               job={editingJob}
               mode="edit"
               onCancel={handleCloseEditDialog}
-              onSubmit={handleJobFormSubmit}
+              // onSubmit={handleJobFormSubmit}
             />
           )}
         </DialogContent>
