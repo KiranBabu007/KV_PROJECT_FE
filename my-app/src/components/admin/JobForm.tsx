@@ -12,10 +12,10 @@ interface JobFormProps {
   onCancel?: () => void;
   job?: Job; // Optional job for editing
   mode?: 'create' | 'edit';
-  onSubmit?: (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> | { id: string; updates: Partial<Job> }) => void;
+  // onSubmit?: (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> | { id: string; updates: Partial<Job> }) => void;
 }
 
-const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSubmit }) => {
+const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create'}) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,7 +26,7 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
   });
   const [requirements, setRequirements] = useState<string[]>([]);
   const [newRequirement, setNewRequirement] = useState('');
-
+   const [create, { isLoading }] = useAddJobMutation();
   // Load job data when editing
   useEffect(() => {
     if (job && mode === 'edit') {
@@ -42,40 +42,46 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
     }
   }, [job, mode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (mode === 'edit' && job) {
-      onSubmit?.({
-        id: job.id,
-        updates: {
-          ...formData,
-          requirements,
-          openPositions: formData.totalPositions,
-        }
-      });
+  const handleSubmit=()=>{
+   
+  
+    if (mode === 'edit') {
+      const payload = {
+        ...dataValues,
+       
+
+      };
+      create(payload)
+        .unwrap()
+        .then((response) => {
+          console.log("response is:", response);
+          navigate("/employees");
+        })
+        .catch((error) => {
+          setError(error.data.message);
+          console.log(error);
+        });
+ 
     } else {
-      onSubmit?.({
-        ...formData,
-        requirements,
-        openPositions: formData.totalPositions,
-        status: 'active' as const
-      });
-    }
+  
+      console.log("datavalues:", dataValues);
+      const payload = {
+        ...dataValues,
+        department: Number(dataValues?.department.id),
+        experience: Number(dataValues?.experience),
+ 
+      };
+      console.log("payload:", payload);
+      update(payload)
+        .unwrap()
+        .then(() => {})
+        .catch((error) => {
+          setError(error.data.message);
+        });
     
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      location: '',
-      salary: '',
-      experience: '',
-      totalPositions: 1,
-    });
-    setRequirements([]);
-    onCancel?.();
   };
 
+  }
   const addRequirement = () => {
     if (newRequirement.trim() && !requirements.includes(newRequirement.trim())) {
       setRequirements([...requirements, newRequirement.trim()]);
@@ -193,7 +199,7 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
             Cancel
           </Button>
         )}
-        <Button type="submit">
+        <Button type="submit" onClick={handleSubmit}>
           {mode === 'edit' ? 'Update Job' : 'Create Job'}
         </Button>
       </div>

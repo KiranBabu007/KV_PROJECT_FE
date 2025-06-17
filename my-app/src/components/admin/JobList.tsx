@@ -23,51 +23,52 @@ import {
 import { format } from "date-fns";
 import type { Job } from "@/types";
 import JobForm from "./JobForm";
-import { useGetJobsListQuery } from "@/api-service/job/job.api.ts";
+import { useAddJobMutation, useGetJobsListQuery } from "@/api-service/job/job.api.ts";
 
 // Local mock data
-const initialJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    description:
-      "We are looking for an experienced software engineer to join our team.",
-    requirements: ["React", "TypeScript", "5+ years experience"],
-    location: "San Francisco, CA",
-    salary: "₹90,00,000 - ₹1,35,00,000",
-    experience: "5+ years",
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    status: "active",
-    numOfPositions: 3,
-    bonusForReferral: 5000,
-    skills: "AI/ML",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    description: "Lead product strategy and development for our core platform.",
-    requirements: ["Product Management", "Agile", "3+ years experience"],
-    location: "New York, NY",
-    salary: "₹75,00,000 - ₹1,05,00,000",
-    experience: "3-5 years",
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date("2024-01-20"),
-    updatedAt: new Date("2024-01-20"),
-    status: "active",
-    numOfPositions: 3,
-    bonusForReferral: 5000,
-    skills: "AI/ML",
-  },
-];
+// const initialJobs: Job[] = [
+//   {
+//     id: "1",
+//     title: "Senior Software Engineer",
+//     description:
+//       "We are looking for an experienced software engineer to join our team.",
+//     requirements: ["React", "TypeScript", "5+ years experience"],
+//     location: "San Francisco, CA",
+//     salary: "₹90,00,000 - ₹1,35,00,000",
+//     experience: "5+ years",
+//     openPositions: 2,
+//     totalPositions: 3,
+//     createdAt: new Date("2024-01-15"),
+//     updatedAt: new Date("2024-01-15"),
+//     status: "active",
+//     numOfPositions: 3,
+//     bonusForReferral: 5000,
+//     skills: "AI/ML",
+//   },
+//   {
+//     id: "2",
+//     title: "Product Manager",
+//     description: "Lead product strategy and development for our core platform.",
+//     requirements: ["Product Management", "Agile", "3+ years experience"],
+//     location: "New York, NY",
+//     salary: "₹75,00,000 - ₹1,05,00,000",
+//     experience: "3-5 years",
+//     openPositions: 1,
+//     totalPositions: 1,
+//     createdAt: new Date("2024-01-20"),
+//     updatedAt: new Date("2024-01-20"),
+//     status: "active",
+//     numOfPositions: 3,
+//     bonusForReferral: 5000,
+//     skills: "AI/ML",
+//   },
+// ];
 
 const JobList: React.FC = () => {
   // Replace the static initialJobs with API call
   const { data: jobsData, isLoading, error } = useGetJobsListQuery({});
   const [jobs, setJobs] = useState<Job[]>([]);
+ 
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -116,15 +117,7 @@ const JobList: React.FC = () => {
     setJobs((prev) => prev.filter((job) => job.id !== id));
   };
 
-  const handleJobFormSubmit = (data: any) => {
-    if ("id" in data) {
-      // Edit mode
-      updateJob(data.id, data.updates);
-    } else {
-      // Create mode
-      addJob(data);
-    }
-  };
+  
 
   const getStatusColor = (status: string) => {
     return status === "active"
@@ -301,7 +294,7 @@ const JobList: React.FC = () => {
               job={editingJob}
               mode="edit"
               onCancel={handleCloseEditDialog}
-              onSubmit={handleJobFormSubmit}
+              // onSubmit={handleJobFormSubmit}
             />
           )}
         </DialogContent>
