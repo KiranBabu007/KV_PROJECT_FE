@@ -19,6 +19,8 @@ export interface Job {
   createdAt: Date;
   updatedAt: Date;
   status?: 'active' | 'closed';
+  bonusForRefferal:number
+
 }
 
 
