@@ -79,11 +79,17 @@ const BonusManagement: React.FC = () => {
 		try {
 			await patchBonus({
 				id: bonus.id,
-				status: 'SETTLED'
+				status: 'SETTLED'  // Make sure this matches your API expectation
 			}).unwrap();
+			
 			setRecentlyPaidBonus(bonus);
 			setShowAlert(true);
-			setTimeout(() => setShowAlert(false), 5000); // Hide after 5 seconds
+			
+			// Hide alert after 5 seconds
+			setTimeout(() => {
+				setShowAlert(false);
+				setRecentlyPaidBonus(null);
+			}, 5000);
 		} catch (error) {
 			console.error('Failed to update bonus status:', error);
 		}
@@ -117,6 +123,17 @@ const BonusManagement: React.FC = () => {
 						</div>
 					</div>
 				</div>
+
+				{/* Add Alert here */}
+				{showAlert && recentlyPaidBonus && (
+					<Alert className="bg-green-50 border-green-200 text-green-800 animate-fade-in shadow-lg">
+						<AlertCircle className="h-4 w-4 text-green-600" />
+						<AlertTitle>Payment Successful</AlertTitle>
+						<AlertDescription>
+							Bonus payment of ₹{recentlyPaidBonus.bonusAmount.toLocaleString()} has been marked as paid.
+						</AlertDescription>
+					</Alert>
+				)}
 
 				{/* Enhanced Stats Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -258,7 +275,7 @@ const BonusManagement: React.FC = () => {
 											</span>
 										</div>
 										<div className="flex space-x-3">
-											{(bonus.bonusStatus === 'PENDING' || bonus.bonusStatus === 'DUE') && (
+											{bonus.bonusStatus === 'DUE' && (
 												<Button
 													size="sm"
 													onClick={() => handleMarkAsPaid(bonus)}
