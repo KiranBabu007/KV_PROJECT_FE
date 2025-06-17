@@ -6,7 +6,6 @@ type ReferralData = {
   candidateName: string;
   position: string;
   referredBy: string;
-  department: string;
   submittedDate: string;
 };
 
@@ -28,14 +27,6 @@ export default function ReferralDetails({ data }: { data: ReferralData }) {
         <div>
           <p className="text-sm font-medium text-gray-900">Position</p>
           <p className="text-gray-600">{data.position}</p>
-        </div>
-        <Separator />
-        <div>
-          <p className="text-sm font-medium text-gray-900">Department</p>
-          <p className="text-gray-600 flex items-center gap-1">
-            <Building className="h-4 w-4" />
-            {data.department}
-          </p>
         </div>
         <Separator />
         <div>
