@@ -4,36 +4,62 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Eye, EyeOff, Sparkles, ArrowRight, Shield, Users, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useLoginMutation } from "@/api-service/auth/login.api";
+import { jwtDecode } from "jwt-decode";
+import logo from "@/assets/logo.jpg"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const [login, { isLoading }] = useLoginMutation();
+
+  type MyJwtPayload = {
+    personId: number;
+    employeeId: number;
+    email: string;
+    role: string;
+    iat: number;
+    exp: number;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      console.log("Login attempt:", { email, password });
+    setError("");
+
+    try {
+      const response = await login({ email: email, password: password }).unwrap();
+      console.log(response);
+      localStorage.setItem("token", response?.accessToken);
+      const decoded = jwtDecode<MyJwtPayload>(response?.accessToken);
+
+      console.log("decode:", decoded.role);
+      const role = decoded.role;
+
+      if (role === "ADMIN") {
+        navigate("/admin");
+      } else if (role === "EMPLOYEE") {
+        navigate("/employee");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Login failed. Please check your credentials.");
+    } finally {
       setLoading(false);
-      // Add your login logic here
-    }, 2000);
+    }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen m-0 relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Animated background grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       
-      {/* Floating orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000" />
-      </div>
+      
 
       {/* Main content */}
       <div className="relative z-10 min-h-screen flex">
@@ -42,47 +68,34 @@ const Login = () => {
           <div className="max-w-md text-center space-y-8">
             {/* Logo */}
             <div className="relative">
-              <div className="w-24 h-24 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                <div className="flex items-center space-x-1">
-                  <span className="text-3xl font-bold text-white">F</span>
-                  <ArrowRight className="w-6 h-6 text-yellow-400" />
-                  <span className="text-3xl font-bold text-white">C</span>
-                </div>
+              <div className="w-34 h-34 mx-auto rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
+                <img 
+                  src={logo} 
+                  alt="FtoC Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur-xl opacity-20" />
             </div>
 
             {/* Branding text */}
-            <div className="space-y-4">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
-                FtoC Platform
+            <div className="space-y-6">
+              <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent leading-tight">
+                Friend To Colleague
+                <span className="block mt-2 bg-gradient-to-r from-blue-200 via-purple-100 to-white bg-clip-text">
+                  Referral Platform
+                </span>
               </h1>
-              <p className="text-xl text-slate-300 leading-relaxed">
-                Transform friendships into professional opportunities
+              <p className="text-xl text-slate-300 leading-relaxed tracking-wide font-light max-w-sm mx-auto">
+                Transform friendships into professional opportunities with our trusted referral network
               </p>
+         
             </div>
 
-            {/* Features */}
-            <div className="grid grid-cols-1 gap-4 pt-8">
-              <div className="flex items-center space-x-3 text-slate-300">
-                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-400" />
-                </div>
-                <span>Connect with trusted networks</span>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-purple-400" />
-                </div>
-                <span>Secure referral system</span>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-300">
-                <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-pink-400" />
-                </div>
-                <span>Fast-track your career</span>
-              </div>
-            </div>
+            
+           
+
+       
           </div>
         </div>
 
@@ -91,12 +104,12 @@ const Login = () => {
           <div className="w-full max-w-md">
             {/* Mobile logo */}
             <div className="lg:hidden text-center mb-8">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
-                <div className="flex items-center space-x-1">
-                  <span className="text-xl font-bold text-white">F</span>
-                  <ArrowRight className="w-4 h-4 text-yellow-400" />
-                  <span className="text-xl font-bold text-white">C</span>
-                </div>
+              <div className="w-16 h-16 mx-auto rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+                <img 
+                  src={logo} 
+                  alt="FtoC Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h2 className="text-2xl font-bold text-white">FtoC Platform</h2>
             </div>
@@ -119,6 +132,12 @@ const Login = () => {
 
               <CardContent className="space-y-6">
                 <div className="space-y-6">
+                  {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                      <p className="text-red-300 text-sm text-center">{error}</p>
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-200 font-medium">
                       Email address
@@ -129,6 +148,7 @@ const Login = () => {
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      required
                       className="h-12 bg-white/5 border-white/10 text-white placeholder-slate-400 backdrop-blur-sm focus:bg-white/10 focus:border-blue-500/50 transition-all duration-300"
                     />
                   </div>
@@ -144,6 +164,7 @@ const Login = () => {
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                         className="h-12 bg-white/5 border-white/10 text-white placeholder-slate-400 backdrop-blur-sm focus:bg-white/10 focus:border-blue-500/50 transition-all duration-300 pr-12"
                       />
                       <button
@@ -176,9 +197,9 @@ const Login = () => {
                   <Button
                     onClick={handleSubmit}
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0"
-                    disabled={loading}
+                    disabled={loading || isLoading}
                   >
-                    {loading ? (
+                    {loading || isLoading ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         <span>Signing in...</span>
