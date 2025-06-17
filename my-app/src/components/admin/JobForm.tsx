@@ -84,6 +84,7 @@ const JobForm: React.FC<JobFormProps> = ({
     }
   };
 
+  }
   const addRequirement = () => {
     if (
       newRequirement.trim() &&
