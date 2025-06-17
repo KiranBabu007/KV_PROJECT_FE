@@ -7,8 +7,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 import {
   MapPin,
   Users,
@@ -21,64 +31,33 @@ import {
   Target,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { Job } from "@/types";
+import type { Job } from '@/types';
 import JobForm from "./JobForm";
-import { useAddJobMutation, useGetJobsListQuery } from "@/api-service/job/job.api.ts";
-
-// Local mock data
-// const initialJobs: Job[] = [
-//   {
-//     id: "1",
-//     title: "Senior Software Engineer",
-//     description:
-//       "We are looking for an experienced software engineer to join our team.",
-//     requirements: ["React", "TypeScript", "5+ years experience"],
-//     location: "San Francisco, CA",
-//     salary: "₹90,00,000 - ₹1,35,00,000",
-//     experience: "5+ years",
-//     openPositions: 2,
-//     totalPositions: 3,
-//     createdAt: new Date("2024-01-15"),
-//     updatedAt: new Date("2024-01-15"),
-//     status: "active",
-//     numOfPositions: 3,
-//     bonusForReferral: 5000,
-//     skills: "AI/ML",
-//   },
-//   {
-//     id: "2",
-//     title: "Product Manager",
-//     description: "Lead product strategy and development for our core platform.",
-//     requirements: ["Product Management", "Agile", "3+ years experience"],
-//     location: "New York, NY",
-//     salary: "₹75,00,000 - ₹1,05,00,000",
-//     experience: "3-5 years",
-//     openPositions: 1,
-//     totalPositions: 1,
-//     createdAt: new Date("2024-01-20"),
-//     updatedAt: new Date("2024-01-20"),
-//     status: "active",
-//     numOfPositions: 3,
-//     bonusForReferral: 5000,
-//     skills: "AI/ML",
-//   },
-// ];
+import { useAddJobMutation, useDeleteJobMutation, useGetJobsListQuery, usePatchJobMutation } from "@/api-service/job/job.api.ts";
 
 const JobList: React.FC = () => {
-  // Replace the static initialJobs with API call
-  const { data: jobsData, isLoading, error } = useGetJobsListQuery({});
+  const { data: jobsData, isLoading, error, refetch } = useGetJobsListQuery({});
   const [jobs, setJobs] = useState<Job[]>([]);
  
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // State for delete confirmation dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [jobToDeleteId, setJobToDeleteId] = useState<string | null>(null);
+
+  // RTK Query mutations
+  const [addJobMutation] = useAddJobMutation();
+  const [patchJobMutation] = usePatchJobMutation();
+  const [deleteJobMutation] = useDeleteJobMutation();
+
   useEffect(() => {
     if (jobsData) {
-      const formattedJobs = jobsData.map((job) => ({
+      const formattedJobs = jobsData.map((job: any) => ({
         id: job.id.toString(),
         title: job.title,
         description: job.description,
-        requirements: job.skills.split(", "), // Convert skills string to array
+        requirements: job.skills ? job.skills.split(", ") : [],
         location: job.location,
         salary: `₹${(job.salary / 100000).toFixed(2)} LPA`,
         experience: `${job.experience}+ years`,
@@ -93,39 +72,52 @@ const JobList: React.FC = () => {
     }
   }, [jobsData]);
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
-
-  const addJob = (jobData: Omit<Job, "id" | "createdAt" | "updatedAt">) => {
-    const newJob: Job = {
-      ...jobData,
-      id: generateId(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setJobs((prev) => [...prev, newJob]);
+  // Function to initiate delete (opens confirmation dialog)
+  const handleDeleteClick = (id: string) => {
+    setJobToDeleteId(id);
+    setIsDeleteDialogOpen(true);
   };
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
-    setJobs((prev) =>
-      prev.map((job) =>
-        job.id === id ? { ...job, ...updates, updatedAt: new Date() } : job
-      )
-    );
+  // Function to execute deletion after confirmation
+  const confirmDeleteJob = async () => {
+    if (jobToDeleteId) {
+      try {
+        await deleteJobMutation({ id: jobToDeleteId }).unwrap();
+        refetch(); // Refetch to update the list from the server
+        console.log(`Job with ID ${jobToDeleteId} deleted successfully.`);
+      } catch (deleteError) {
+        console.error("Error deleting job:", deleteError);
+        // You might want to show a toast or error message here
+      } finally {
+        setIsDeleteDialogOpen(false); // Close dialog regardless of success/failure
+        setJobToDeleteId(null); // Clear the ID
+      }
+    }
   };
 
-  const [addJobs] = useAddJobMutation({})
+  const handleJobFormSubmit = async (data: any) => {
+    console.log("Form Data received in handle handleJobFormSubmit:", data);
 
-  const deleteJob = (id: string) => {
-    setJobs((prev) => prev.filter((job) => job.id !== id));
-  };
+    try {
+      if (data.id) {
+        const { id, ...patch } = data;
+        console.log("Patching job with ID:", id);
+        console.log("Patch data:", patch);
 
-  const handleJobFormSubmit = (data: any) => {
-    if ("id" in data) {
-      // Edit mode
-      updateJob(data.id, data.updates);
-    } else {
-      // Create mode
-      addJobs(data);
+        const result = await patchJobMutation({ id, ...patch }).unwrap();
+        console.log("Patch result:", result);
+
+        refetch();
+        handleCloseEditDialog();
+      } else {
+        console.log("Creating new job");
+        const result = await addJobMutation(data).unwrap();
+        console.log("Create result:", result);
+
+        refetch();
+      }
+    } catch (error) {
+      console.error("Error submitting job form:", error);
     }
   };
 
@@ -135,13 +127,25 @@ const JobList: React.FC = () => {
       : "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200";
   };
 
-  const handleToggleStatus = (job: Job) => {
-    updateJob(job.id, {
-      status: job.status === "active" ? "closed" : "active",
-    });
+  const handleToggleStatus = async (job: Job) => {
+    try {
+      console.log("Toggling status for job:", job.id);
+      const newStatus = job.status === "active" ? "closed" : "active";
+
+      const result = await patchJobMutation({
+        id: job.id,
+        status: newStatus,
+      }).unwrap();
+
+      console.log("Status toggle result:", result);
+      refetch();
+    } catch (error) {
+      console.error("Error toggling job status:", error);
+    }
   };
 
   const handleEditJob = (job: Job) => {
+    console.log("Editing job:", job);
     setEditingJob(job);
     setIsEditDialogOpen(true);
   };
@@ -151,17 +155,14 @@ const JobList: React.FC = () => {
     setEditingJob(null);
   };
 
-  // Add loading state
   if (isLoading) {
-    return <div>Loading jobs...</div>;
+    return <div className="text-center py-8">Loading jobs...</div>;
   }
 
-  // Add error state
   if (error) {
-    return <div>Error loading jobs: {error.toString()}</div>;
+    console.error("Error loading jobs:", error);
+    return <div className="text-center py-8 text-red-600">Error loading jobs: {error.toString()}</div>;
   }
-
-   
 
   return (
     <div className="space-y-6">
@@ -246,7 +247,7 @@ const JobList: React.FC = () => {
                 <div className="flex flex-wrap gap-2">
                   {job.requirements.map((req, reqIndex) => (
                     <Badge
-                      key={req}
+                      key={`${req}-${reqIndex}`}
                       variant="secondary"
                       className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 hover:scale-105 transition-transform duration-200"
                       style={{ animationDelay: `${reqIndex * 50}ms` }}
@@ -280,10 +281,11 @@ const JobList: React.FC = () => {
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
+                  {/* Changed onClick to open dialog */}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => deleteJob(job.id)}
+                    onClick={() => handleDeleteClick(job.id)}
                     className="hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -311,6 +313,25 @@ const JobList: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the job
+              posting and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteJob}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
