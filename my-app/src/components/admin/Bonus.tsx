@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Calendar, User, CheckCircle, TrendingUp, Clock, Award } from 'lucide-react';
+import { DollarSign, Calendar, User, CheckCircle, TrendingUp, Clock, Award, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Bonus, Referral } from '@/types';
-import { useGetBonusListQuery } from '@/api-service/bonus/bonus.api';
+import { useGetBonusListQuery, usePatchBonusMutation } from '@/api-service/bonus/bonus.api';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Local mock data
 const mockReferrals: Referral[] = [
@@ -29,6 +30,9 @@ const mockReferrals: Referral[] = [
 
 const BonusManagement: React.FC = () => {
 	const { data: bonuses = [], isLoading } = useGetBonusListQuery({});
+	const [patchBonus] = usePatchBonusMutation();
+	const [showAlert, setShowAlert] = useState(false);
+	const [recentlyPaidBonus, setRecentlyPaidBonus] = useState<Bonus | null>(null);
 
 	// Update calculations for stats
 	const totalBonusesDue =
@@ -70,6 +74,20 @@ const BonusManagement: React.FC = () => {
 			</div>
 		);
 	}
+
+	const handleMarkAsPaid = async (bonus: Bonus) => {
+		try {
+			await patchBonus({
+				id: bonus.id,
+				status: 'SETTLED'
+			}).unwrap();
+			setRecentlyPaidBonus(bonus);
+			setShowAlert(true);
+			setTimeout(() => setShowAlert(false), 5000); // Hide after 5 seconds
+		} catch (error) {
+			console.error('Failed to update bonus status:', error);
+		}
+	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
@@ -240,9 +258,10 @@ const BonusManagement: React.FC = () => {
 											</span>
 										</div>
 										<div className="flex space-x-3">
-											{bonus.bonusStatus === 'PENDING' && (
+											{(bonus.bonusStatus === 'PENDING' || bonus.bonusStatus === 'DUE') && (
 												<Button
 													size="sm"
+													onClick={() => handleMarkAsPaid(bonus)}
 													className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
 												>
 													<CheckCircle className="h-4 w-4 mr-2" />
