@@ -1,8 +1,8 @@
-import { CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 
 type Step = {
   name: string;
-  status: "completed" | "current" | "pending";
+  status: "completed" | "current" | "pending" | "failed";
   date: string;
 };
 
@@ -11,7 +11,8 @@ function getStatusIcon(step: Step) {
     return <CheckCircle className="h-5 w-5 text-green-600" />;
   if (step.status === "current")
     return <Clock className="h-5 w-5 text-blue-600" />;
-  // pending
+  if (step.status === "failed")
+    return <XCircle className="h-5 w-5 text-red-600" />; // ⬅️ Changed icon
   return <AlertCircle className="h-5 w-5 text-gray-400" />;
 }
 
@@ -39,11 +40,14 @@ export default function ReferralTimeline({
                     ? "text-green-800"
                     : step.status === "current"
                     ? "text-blue-800"
+                    : step.status === "failed"
+                    ? "text-red-800"
                     : "text-gray-600"
                 }`}
               >
                 {step.name}
               </p>
+
               <p className="text-xs text-gray-500">{step.date}</p>
             </div>
             {index < steps.length - 1 && (

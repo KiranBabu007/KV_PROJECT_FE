@@ -14,71 +14,157 @@ import {
   MessageCircleQuestion,
   FileCheck2,
 } from "lucide-react";
+import { useGetReferralQuery } from "@/api-service/candidate/candidate.api";
+import { useParams } from "react-router-dom";
+import { skipToken } from "@reduxjs/toolkit/query";
 
-// Decorative Unsplash image URL for the header
-// Removed headerImg as images are no longer needed
-
+// Referral Data (Static)
 const referralData = {
   id: "REF-2024-001",
   candidateName: "John Doe",
   position: "Senior Software Engineer",
   referredBy: "Sarah Johnson",
-  department: "Engineering",
   submittedDate: "2024-01-15",
-  currentStatus: "Technical Interview",
-  progress: 60,
-  nextStep: "Final Interview with VP Engineering",
-  estimatedCompletion: "2024-02-10",
+  currentStatus: "Interview Round 2",
+  failed: false,
 };
 
-// Use strict types for status
-const statusSteps = [
-  {
-    name: "Application Submitted",
-    status: "completed" as const,
-    date: "Jan 15, 2024",
-  },
-  {
-    name: "Initial Screening",
-    status: "completed" as const,
-    date: "Jan 18, 2024",
-  },
-  {
-    name: "Technical Interview",
-    status: "current" as const,
-    date: "Jan 25, 2024",
-  },
-  { name: "Final Interview", status: "pending" as const, date: "Feb 5, 2024" },
-  { name: "Decision", status: "pending" as const, date: "Feb 10, 2024" },
+// Define all step names (static)
+const allSteps = [
+  "Referral Submitted",
+  "Referral Under Review",
+  "Referral Accepted",
+  "Interview Round 1",
+  "Interview Round 2",
+  "Interview Round 3",
+  "Final Result", // outcome, not part of progress calculation
 ];
 
-function getStatusColor(status: "completed" | "current" | "pending") {
+// Fake corresponding dates (static)
+const fakeDates = [
+  "Jan 15, 2024",
+  "Jan 18, 2024",
+  "Jan 25, 2024",
+  "Feb 5, 2024",
+  "Feb 10, 2024",
+  "Feb 12, 2024",
+];
+
+// Updated generateStatusSteps
+function generateStatusSteps(currentCompletedStatus: string, failed: boolean) {
+  const currentIndex = allSteps.findIndex(
+    (step) => step === currentCompletedStatus
+  );
+
+  return allSteps.map((step, index) => {
+    let status: "completed" | "current" | "pending" | "failed";
+    let name = step;
+
+    const isFinalStep = step === "Final Result";
+    const isPast = index < currentIndex;
+    const isCurrent = index === currentIndex;
+
+    // Final Result naming logic
+    if (isFinalStep) {
+      if (failed || currentCompletedStatus === "Interview Round 3") {
+        name = failed ? "Failed" : "Completed"; // Change label only at end
+        status = failed ? "failed" : "completed";
+      } else {
+        name = "Final Result"; // Keep neutral label during progress
+        status = "pending";
+      }
+    } else if (isPast) {
+      status = "completed";
+    } else if (isCurrent) {
+      status = failed ? "failed" : "completed";
+    } else if (index === currentIndex + 1 && !failed) {
+      status = "current";
+    } else {
+      status = "pending";
+    }
+
+    if (failed && index > currentIndex) {
+      status = "failed";
+    }
+
+    return {
+      name,
+      status,
+      date: fakeDates[index] || "",
+    };
+  });
+}
+
+// Progress calculation excluding "Final Result"
+function calculateProgress(currentStatus: string, failed: boolean): number {
+  const processSteps = allSteps.slice(0, 6); // Exclude Final Result
+  const currentIndex = processSteps.findIndex((s) => s === currentStatus);
+
+  let completedCount = failed ? currentIndex : currentIndex + 1;
+
+  if (completedCount < 0) completedCount = 0;
+  if (completedCount > processSteps.length)
+    completedCount = processSteps.length;
+
+  return Math.round((completedCount / processSteps.length) * 100);
+}
+
+// Status color class
+function getStatusColor(
+  status: "completed" | "current" | "pending" | "failed"
+) {
   switch (status) {
     case "completed":
       return "bg-green-100 text-green-800";
     case "current":
       return "bg-blue-100 text-blue-800";
+    case "failed":
+      return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-600";
   }
 }
 
+// Main Component
 export default function Index() {
+  const params = useParams();
+  const { data } = useGetReferralQuery(
+    params.id ? { id: params.id } : skipToken
+  );
+  console.log("🚀 ~ data:", data);
+
+  const statusSteps = generateStatusSteps(
+    referralData.currentStatus,
+    referralData.failed
+  );
+  const progress = calculateProgress(
+    referralData.currentStatus,
+    referralData.failed
+  );
+
+  const nextStep =
+    statusSteps.find((step) => step.status === "pending")?.name ??
+    "All steps completed";
+
+  const displayStatus = (() => {
+    const finalStep = statusSteps.find(
+      (step) => step.name === "Completed" || step.name === "Failed"
+    );
+    if (finalStep && finalStep.status === "completed")
+      return "Final Result: Completed";
+    if (finalStep && finalStep.status === "failed")
+      return "Final Result: Failed";
+
+    const next = statusSteps.find(
+      (step) => step.status === "current" || step.status === "pending"
+    );
+    return next?.name ?? "Completed";
+  })();
+
   return (
     <div className="min-h-screen bg-gradient-to-tr from-blue-100 via-white to-purple-100 text-[1.12rem] sm:text-base lg:text-[1.14rem]">
-      {/* Header (livelier style) */}
-      <div
-        className="
-          w-full z-30 transition-all duration-500
-          bg-white/80 dark:bg-gray-900/60
-          border-b border-white/30 dark:border-gray-800/40
-          shadow-lg
-          max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
-          flex items-center justify-between
-          rounded-b-xl
-          fade-in-up
-        "
-      >
+      {/* Header */}
+      <div className="w-full z-30 bg-white/80 dark:bg-gray-900/60 border-b border-white/30 dark:border-gray-800/40 shadow-lg max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-between rounded-b-xl fade-in-up">
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <div className="flex-shrink-0">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white drop-shadow-lg tracking-tight flex items-center gap-2">
@@ -90,20 +176,20 @@ export default function Index() {
             </p>
           </div>
         </div>
-        {/* Referral ID and Notification Bell side by side & more spacing */}
         <div className="flex flex-row items-center gap-5 ml-12">
           <Badge className="text-lg px-6 py-2 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 shadow font-semibold transition-colors duration-200 hover-scale animate-fade-in-up">
             {referralData.id}
           </Badge>
-          <Notifications />
+          <Notifications id={params.id || ""} />
         </div>
       </div>
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 fade-in-up">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Main Content */}
+          {/* Main Panel */}
           <div className="lg:col-span-2 space-y-7">
-            {/* Current Status Card */}
+            {/* Current Status */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
                 <CardTitle className="flex items-center gap-2 text-2xl">
@@ -115,28 +201,28 @@ export default function Index() {
                 <div className="flex items-center justify-between mb-4">
                   <Badge
                     className={`${getStatusColor(
-                      "current"
+                      referralData.failed ? "failed" : "current"
                     )} px-3 py-1 text-sm font-semibold`}
                   >
-                    {referralData.currentStatus}
+                    {referralData.failed ? "Failed" : displayStatus}
                   </Badge>
                   <span className="text-base text-gray-500">
-                    {referralData.progress}% Complete
+                    {progress}% Complete
                   </span>
                 </div>
-                <Progress value={referralData.progress} className="h-2 mb-4" />
-                <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-5 transition-colors duration-300">
-                  <p className="text-base font-medium text-blue-900 mb-1">
-                    Next Step
-                  </p>
-                  <p className="text-blue-800">{referralData.nextStep}</p>
-                  <p className="text-xs text-blue-600 mt-2">
-                    Estimated completion: {referralData.estimatedCompletion}
-                  </p>
-                </div>
+                <Progress value={progress} className="h-2 mb-4" />
+                {!referralData.failed && (
+                  <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-5 transition-colors duration-300">
+                    <p className="text-base font-medium text-blue-900 mb-1">
+                      Next Step
+                    </p>
+                    <p className="text-blue-800">{nextStep}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-            {/* Progress Timeline */}
+
+            {/* Timeline */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -145,11 +231,11 @@ export default function Index() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* uniform size already applied in ReferralTimeline via largerFont */}
                 <ReferralTimeline steps={statusSteps} largerFont={true} />
               </CardContent>
             </Card>
-            {/* Recent Updates */}
+
+            {/* Updates */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -191,10 +277,10 @@ export default function Index() {
               </CardContent>
             </Card>
           </div>
+
           {/* Sidebar */}
           <div className="space-y-7 fade-in-up">
             <ReferralDetails data={referralData} />
-            {/* Quick Actions */}
             <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
                 <CardTitle className="text-2xl">Quick Actions</CardTitle>

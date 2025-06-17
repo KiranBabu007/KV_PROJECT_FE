@@ -98,7 +98,12 @@ function App() {
     },
     {
       path: "/candidate",
-      element: <Candidate />,
+      children: [
+        {
+          path: ":id",
+          element: <Candidate />,
+        },
+      ],
     },
     {
       path: "/admin",
@@ -130,14 +135,13 @@ function App() {
     },
   ]);
 
-  return(
+  return (
     <>
-    <Provider store={store}>
-      <RouterProvider router={router} />;
-      </Provider></>
-
-
-  ) 
+      <Provider store={store}>
+        <RouterProvider router={router} />;
+      </Provider>
+    </>
+  );
 }
 
 export default App;

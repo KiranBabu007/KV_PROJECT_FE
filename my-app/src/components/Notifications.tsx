@@ -9,6 +9,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { useGetReferralNotificationsQuery } from "@/api-service/candidate/candidate.api";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 type NotificationType = {
   id: number;
@@ -47,7 +49,11 @@ const initialNotifications: NotificationType[] = [
   },
 ];
 
-export default function Notifications() {
+export default function Notifications({ id }: { id: string }) {
+  const { data } = useGetReferralNotificationsQuery(
+    id ? { id: id } : skipToken
+  );
+
   const [notifications, setNotifications] =
     useState<NotificationType[]>(initialNotifications);
   const unreadCount = notifications.filter((n) => !n.read).length;
