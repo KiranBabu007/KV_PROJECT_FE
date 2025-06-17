@@ -1,44 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MapPin, Users, Calendar, Edit, Trash2, DollarSign, Clock, Building2, Target } from 'lucide-react';
-import { format } from 'date-fns';
-import type { Job } from '@/types';
-import JobForm from './JobForm';
-import { useGetJobsListQuery } from '@/api-service/job/job.api.ts';
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  MapPin,
+  Users,
+  Calendar,
+  Edit,
+  Trash2,
+  DollarSign,
+  Clock,
+  Building2,
+  Target,
+} from "lucide-react";
+import { format } from "date-fns";
+import type { Job } from "@/types";
+import JobForm from "./JobForm";
+import { useGetJobsListQuery } from "@/api-service/job/job.api.ts";
 
 // Local mock data
 const initialJobs: Job[] = [
   {
-    id: '1',
-    title: 'Senior Software Engineer',
-    description: 'We are looking for an experienced software engineer to join our team.',
-    requirements: ['React', 'TypeScript', '5+ years experience'],
-    location: 'San Francisco, CA',
-    salary: '₹90,00,000 - ₹1,35,00,000',
-    experience: '5+ years',
+    id: "1",
+    title: "Senior Software Engineer",
+    description:
+      "We are looking for an experienced software engineer to join our team.",
+    requirements: ["React", "TypeScript", "5+ years experience"],
+    location: "San Francisco, CA",
+    salary: "₹90,00,000 - ₹1,35,00,000",
+    experience: "5+ years",
     openPositions: 2,
     totalPositions: 3,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-    status: 'active'
+    createdAt: new Date("2024-01-15"),
+    updatedAt: new Date("2024-01-15"),
+    status: "active",
+    numOfPositions: 3,
+    bonusForReferral: 5000,
+    skills: "AI/ML",
   },
   {
-    id: '2',
-    title: 'Product Manager',
-    description: 'Lead product strategy and development for our core platform.',
-    requirements: ['Product Management', 'Agile', '3+ years experience'],
-    location: 'New York, NY',
-    salary: '₹75,00,000 - ₹1,05,00,000',
-    experience: '3-5 years',
+    id: "2",
+    title: "Product Manager",
+    description: "Lead product strategy and development for our core platform.",
+    requirements: ["Product Management", "Agile", "3+ years experience"],
+    location: "New York, NY",
+    salary: "₹75,00,000 - ₹1,05,00,000",
+    experience: "3-5 years",
     openPositions: 1,
     totalPositions: 1,
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-20'),
-    status: 'active'
-  }
+    createdAt: new Date("2024-01-20"),
+    updatedAt: new Date("2024-01-20"),
+    status: "active",
+    numOfPositions: 3,
+    bonusForReferral: 5000,
+    skills: "AI/ML",
+  },
 ];
 
 const JobList: React.FC = () => {
@@ -50,20 +73,20 @@ const JobList: React.FC = () => {
 
   useEffect(() => {
     if (jobsData) {
-      const formattedJobs = jobsData.map(job => ({
+      const formattedJobs = jobsData.map((job) => ({
         id: job.id.toString(),
         title: job.title,
         description: job.description,
-        requirements: job.skills.split(', '), // Convert skills string to array
+        requirements: job.skills.split(", "), // Convert skills string to array
         location: job.location,
-        salary: `₹${(job.salary/100000).toFixed(2)} LPA`,
+        salary: `₹${(job.salary / 100000).toFixed(2)} LPA`,
         experience: `${job.experience}+ years`,
         openPositions: job.numOfPositions,
         totalPositions: job.numOfPositions,
         createdAt: new Date(job.createdAt),
         updatedAt: new Date(job.updatedAt),
-        status: job.deletedAt ? 'closed' : 'active',
-        bonusForReferral: job.bonusForReferral
+        status: job.deletedAt ? "closed" : "active",
+        bonusForReferral: job.bonusForReferral,
       }));
       setJobs(formattedJobs);
     }
@@ -71,28 +94,30 @@ const JobList: React.FC = () => {
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
-  const addJob = (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addJob = (jobData: Omit<Job, "id" | "createdAt" | "updatedAt">) => {
     const newJob: Job = {
       ...jobData,
       id: generateId(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    setJobs(prev => [...prev, newJob]);
+    setJobs((prev) => [...prev, newJob]);
   };
 
   const updateJob = (id: string, updates: Partial<Job>) => {
-    setJobs(prev => prev.map(job => 
-      job.id === id ? { ...job, ...updates, updatedAt: new Date() } : job
-    ));
+    setJobs((prev) =>
+      prev.map((job) =>
+        job.id === id ? { ...job, ...updates, updatedAt: new Date() } : job
+      )
+    );
   };
 
   const deleteJob = (id: string) => {
-    setJobs(prev => prev.filter(job => job.id !== id));
+    setJobs((prev) => prev.filter((job) => job.id !== id));
   };
 
   const handleJobFormSubmit = (data: any) => {
-    if ('id' in data) {
+    if ("id" in data) {
       // Edit mode
       updateJob(data.id, data.updates);
     } else {
@@ -102,13 +127,15 @@ const JobList: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    return status === 'active' 
-      ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200' 
-      : 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200';
+    return status === "active"
+      ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200"
+      : "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200";
   };
 
   const handleToggleStatus = (job: Job) => {
-    updateJob(job.id, { status: job.status === 'active' ? 'closed' : 'active' });
+    updateJob(job.id, {
+      status: job.status === "active" ? "closed" : "active",
+    });
   };
 
   const handleEditJob = (job: Job) => {
@@ -140,14 +167,16 @@ const JobList: React.FC = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto">
                 <Building2 className="h-8 w-8 text-blue-600" />
               </div>
-              <p className="text-gray-500 text-lg">No jobs posted yet. Create your first job posting!</p>
+              <p className="text-gray-500 text-lg">
+                No jobs posted yet. Create your first job posting!
+              </p>
             </div>
           </CardContent>
         </Card>
       ) : (
         jobs.map((job, index) => (
-          <Card 
-            key={job.id} 
+          <Card
+            key={job.id}
             className="card-hover glass border-0 shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in group"
             style={{ animationDelay: `${index * 100}ms` }}
           >
@@ -167,7 +196,7 @@ const JobList: React.FC = () => {
                       <MapPin className="h-4 w-4 text-blue-500" />
                       <span>{job.location}</span>
                     </span>
-                   
+
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <DollarSign className="h-4 w-4 text-purple-500" />
                       <span>{job.salary}</span>
@@ -178,12 +207,16 @@ const JobList: React.FC = () => {
                     </span>
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <Calendar className="h-4 w-4 text-red-500" />
-                      <span>{format(job.createdAt, 'MMM d, yyyy')}</span>
+                      <span>{format(job.createdAt, "MMM d, yyyy")}</span>
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Badge className={`${getStatusColor(job.status)} border shadow-sm font-medium px-3 py-1`}>
+                  <Badge
+                    className={`${getStatusColor(
+                      job.status
+                    )} border shadow-sm font-medium px-3 py-1`}
+                  >
                     {job.status}
                   </Badge>
                   <Badge className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 border-indigo-200 shadow-sm font-medium px-3 py-1">
@@ -195,9 +228,11 @@ const JobList: React.FC = () => {
             </CardHeader>
             <CardContent className="pt-0 space-y-6">
               <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 p-4 rounded-xl">
-                <p className="text-gray-700 leading-relaxed">{job.description}</p>
+                <p className="text-gray-700 leading-relaxed">
+                  {job.description}
+                </p>
               </div>
-              
+
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900 flex items-center">
                   <Target className="h-4 w-4 mr-2 text-blue-500" />
@@ -205,9 +240,9 @@ const JobList: React.FC = () => {
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {job.requirements.map((req, reqIndex) => (
-                    <Badge 
-                      key={req} 
-                      variant="secondary" 
+                    <Badge
+                      key={req}
+                      variant="secondary"
                       className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 hover:scale-105 transition-transform duration-200"
                       style={{ animationDelay: `${reqIndex * 50}ms` }}
                     >
@@ -230,10 +265,10 @@ const JobList: React.FC = () => {
                     onClick={() => handleToggleStatus(job)}
                     className="hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
-                    {job.status === 'active' ? 'Close Job' : 'Reopen Job'}
+                    {job.status === "active" ? "Close Job" : "Reopen Job"}
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleEditJob(job)}
                     className="hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
@@ -262,7 +297,7 @@ const JobList: React.FC = () => {
             <DialogTitle>Edit Job Posting</DialogTitle>
           </DialogHeader>
           {editingJob && (
-            <JobForm 
+            <JobForm
               job={editingJob}
               mode="edit"
               onCancel={handleCloseEditDialog}
