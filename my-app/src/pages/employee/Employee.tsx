@@ -17,42 +17,9 @@ import JobBrowser from "./jobBrowser";
 import ReferralForm from "./referralForm";
 import MyReferrals from "./myReferral";
 import type { Job, Referral, User } from "@/types";
+import { useGetJobsListQuery } from '@/api-service/job/job.api';
 
 // Local mock data
-const mockJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    description:
-      "We are looking for an experienced software engineer to join our team.",
-    requirements: ["React", "TypeScript", "5+ years experience"],
-    location: "San Francisco, CA",
-    department: "Engineering",
-    salary: "₹90,00,000 - ₹1,35,00,000",
-    experience: "5+ years",
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    description: "Lead product strategy and development for our core platform.",
-    requirements: ["Product Management", "Agile", "3+ years experience"],
-    location: "New York, NY",
-    department: "Product",
-    salary: "₹75,00,000 - ₹1,05,00,000",
-    experience: "3-5 years",
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date("2024-01-20"),
-    updatedAt: new Date("2024-01-20"),
-    status: "active",
-  },
-];
-
 const mockReferrals: Referral[] = [
   {
     id: "1",
@@ -78,13 +45,13 @@ interface EmployeeDashboardProps {
 }
 
 const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
-  const [jobs] = useState<Job[]>(mockJobs);
+  const { data: jobs = [], isLoading: jobsLoading } = useGetJobsListQuery({});
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<
     string | null
   >(null);
 
-  const activeJobs = jobs.filter((job) => job.status === "active").length;
+  const activeJobs = jobsLoading ? 0 : jobs.filter((job) => job.deletedAt === null).length;
   const myReferrals = referrals.filter((r) => r.referrerId === user?.id).length;
   const acceptedReferrals = referrals.filter(
     (r) => r.referrerId === user?.id && r.status === "accepted"
@@ -248,7 +215,9 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
               </Card>
             ) : (
               <div className="animate-slide-in-right">
-                <JobBrowser
+                <JobBrowser 
+                  jobs={jobs}
+                  isLoading={jobsLoading}
                   onReferClick={(jobId) => setSelectedJobForReferral(jobId)}
                 />
               </div>
