@@ -17,7 +17,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
   const { data: jobsData = [], isLoading, error } = useGetJobsListQuery({});
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
 
   const activeJobs = jobsData.filter((job) => job.deletedAt === null);
 
@@ -27,10 +27,10 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
       job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.skills.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesDepartment =
-      departmentFilter === 'all' || job.location === departmentFilter;
+    const matchesLocation =
+      locationFilter === 'all' || job.location === locationFilter;
 
-    return matchesSearch && matchesDepartment;
+    return matchesSearch && matchesLocation;
   });
 
   const departments = [...new Set(activeJobs.map(job => job.location))];
@@ -53,7 +53,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                 className="pl-10 bg-white/70 border-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-300"
               />
             </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
               <SelectTrigger className="w-full sm:w-48 bg-white/70 border-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-300">
                 <SelectValue placeholder="Filter by location" />
               </SelectTrigger>
@@ -85,7 +85,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                   <Search className="h-8 w-8 text-blue-600" />
                 </div>
                 <p className="text-gray-500 text-lg">
-                  {searchQuery || departmentFilter !== 'all'
+                  {searchQuery || locationFilter !== 'all'
                     ? 'No jobs match your search criteria.'
                     : 'No active job postings available.'}
                 </p>
