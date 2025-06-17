@@ -27,7 +27,10 @@ const initialJobs: Job[] = [
     totalPositions: 3,
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-15'),
-    status: 'active'
+    status: 'active',
+     numOfPositions: 3,
+    bonusForReferral: 5000,
+    skills: "AI/ML",
   },
   {
     id: '2',
@@ -41,7 +44,10 @@ const initialJobs: Job[] = [
     totalPositions: 1,
     createdAt: new Date('2024-01-20'),
     updatedAt: new Date('2024-01-20'),
-    status: 'active'
+    status: 'active',
+     numOfPositions: 3,
+    bonusForReferral: 5000,
+    skills: "AI/ML",
   }
 ];
 
