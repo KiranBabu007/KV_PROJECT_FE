@@ -23,7 +23,7 @@ import {
 import { format } from "date-fns";
 import type { Job } from "@/types";
 import JobForm from "./JobForm";
-import { useGetJobsListQuery } from "@/api-service/job/job.api.ts";
+import { useAddJobMutation, useGetJobsListQuery } from "@/api-service/job/job.api.ts";
 
 // Local mock data
 const initialJobs: Job[] = [
@@ -112,6 +112,8 @@ const JobList: React.FC = () => {
     );
   };
 
+  const [addJobs] = useAddJobMutation({})
+
   const deleteJob = (id: string) => {
     setJobs((prev) => prev.filter((job) => job.id !== id));
   };
@@ -122,7 +124,7 @@ const JobList: React.FC = () => {
       updateJob(data.id, data.updates);
     } else {
       // Create mode
-      addJob(data);
+      addJobs(data);
     }
   };
 
@@ -157,6 +159,8 @@ const JobList: React.FC = () => {
   if (error) {
     return <div>Error loading jobs: {error.toString()}</div>;
   }
+
+   
 
   return (
     <div className="space-y-6">
