@@ -48,7 +48,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
   const { data: jobs = [], isLoading: jobsLoading } = useGetJobsListQuery({});
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<
-    string | null
+    number | null
   >(null);
 
   const activeJobs = jobsLoading ? 0 : jobs.filter((job) => job.deletedAt === null).length;
@@ -183,7 +183,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
           </div>
 
           <TabsContent value="jobs" className="animate-fade-in">
-            {selectedJobForReferral ? (
+            {selectedJobForReferral !== null ? (
               <Card className="glass border-0 shadow-xl">
                 <CardHeader className="bg-gradient-to-r p-4 from-blue-50 to-indigo-50 rounded-t-lg">
                   <div className="flex justify-between items-center">
@@ -209,6 +209,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                   <ReferralForm
                     jobId={selectedJobForReferral}
                     user={user}
+                    jobs={jobs}
                     onCancel={() => setSelectedJobForReferral(null)}
                   />
                 </CardContent>

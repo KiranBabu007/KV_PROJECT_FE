@@ -63,12 +63,12 @@ const mockReferrals: Referral[] = [
 
 interface ReferralFormProps {
   jobId: string;
+  jobs:any[]
   user: User;
   onCancel?: () => void;
 }
 
-const ReferralForm: React.FC<ReferralFormProps> = ({ jobId, user, onCancel }) => {
-  const [jobs] = useState<Job[]>(mockJobs);
+const ReferralForm: React.FC<ReferralFormProps> = ({ jobId, jobs,user, onCancel }) => {
   const [referrals, setReferrals] = useState<Referral[]>(mockReferrals);
   const [formData, setFormData] = useState({
     candidateName: '',

@@ -147,7 +147,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ jobs, isLoading, onReferClick }
                         View Details
                       </Button>
                       <Button
-                        onClick={() => onReferClick(String(job.id))}
+                        onClick={() => onReferClick(job.id)}
                         size="sm"
                         className="flex items-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                       >
