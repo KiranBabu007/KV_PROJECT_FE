@@ -7,93 +7,60 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Users, Calendar, Search, UserPlus, DollarSign, Clock, Eye, Building2, Target, Gift } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Job } from '@/types';
-
-// Local mock data
-const mockJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Senior Software Engineer',
-    description: 'We are looking for an experienced software engineer to join our team.',
-    requirements: ['React', 'TypeScript', '5+ years experience'],
-    location: 'San Francisco, CA',
-    department: 'Engineering',
-    salary: '₹90,00,000 - ₹1,35,00,000',
-    experience: '5+ years',
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-    status: 'active'
-  },
-  {
-    id: '2',
-    title: 'Product Manager',
-    description: 'Lead product strategy and development for our core platform.',
-    requirements: ['Product Management', 'Agile', '3+ years experience'],
-    location: 'New York, NY',
-    department: 'Product',
-    salary: '₹75,00,000 - ₹1,05,00,000',
-    experience: '3-5 years',
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-20'),
-    status: 'active'
-  }
-];
+import { useGetJobsListQuery } from '@/api-service/job/job.api'; // Ensure this path is correct
 
 interface JobBrowserProps {
   onReferClick: (jobId: string) => void;
 }
 
 const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
-  const [jobs] = useState<Job[]>(mockJobs);
+  const { data: jobsData = [], isLoading, error } = useGetJobsListQuery({});
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
 
-  const activeJobs = jobs.filter(job => job.status === 'active');
-  
+  const activeJobs = jobsData.filter((job) => job.deletedAt === null);
+
   const filteredJobs = activeJobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.requirements.some(req => req.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesDepartment = departmentFilter === 'all' || job.department === departmentFilter;
-    
-    return matchesSearch && matchesDepartment;
+    const matchesSearch =
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.skills.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesLocation =
+      locationFilter === 'all' || job.location === locationFilter;
+
+    return matchesSearch && matchesLocation;
   });
 
-  const departments = [...new Set(activeJobs.map(job => job.department))];
+  const departments = [...new Set(activeJobs.map(job => job.location))];
 
-  const handleViewDetails = (jobId: string) => {
+  const handleViewDetails = (jobId: number) => {
     navigate(`/job/${jobId}`);
   };
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Search and Filter */}
       <Card className="glass border-0 shadow-lg">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by job title, description, or requirements..."
+                placeholder="Search by job title, description, or skills..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-white/70 border-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-300"
               />
             </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
               <SelectTrigger className="w-full sm:w-48 bg-white/70 border-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-300">
-                <SelectValue placeholder="Filter by department" />
+                <SelectValue placeholder="Filter by location" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                <SelectItem value="all">All Locations</SelectItem>
+                {departments.map(loc => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -106,7 +73,11 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
       </div>
 
       <div className="space-y-6">
-        {filteredJobs.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center text-gray-500">Loading jobs...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">Failed to load jobs</div>
+        ) : filteredJobs.length === 0 ? (
           <Card className="glass border-0 shadow-xl animate-fade-in">
             <CardContent className="p-12 text-center">
               <div className="space-y-4">
@@ -114,8 +85,8 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                   <Search className="h-8 w-8 text-blue-600" />
                 </div>
                 <p className="text-gray-500 text-lg">
-                  {searchQuery || departmentFilter !== 'all' 
-                    ? 'No jobs match your search criteria.' 
+                  {searchQuery || locationFilter !== 'all'
+                    ? 'No jobs match your search criteria.'
                     : 'No active job postings available.'}
                 </p>
               </div>
@@ -123,8 +94,8 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
           </Card>
         ) : (
           filteredJobs.map((job, index) => (
-            <Card 
-              key={job.id} 
+            <Card
+              key={job.id}
               className="card-hover glass border-0 shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in group"
               style={{ animationDelay: `${index * 100}ms` }}
             >
@@ -146,26 +117,26 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                       </span>
                       <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                         <Target className="h-4 w-4 text-green-500" />
-                        <span>{job.department}</span>
+                        <span>{job.skills}</span>
                       </span>
                       <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                         <DollarSign className="h-4 w-4 text-purple-500" />
-                        <span>{job.salary}</span>
+                        <span>₹{job.salary.toLocaleString()}</span>
                       </span>
                       <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                         <Clock className="h-4 w-4 text-orange-500" />
-                        <span>{job.experience}</span>
+                        <span>{job.experience}+ yrs</span>
                       </span>
                       <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                         <Calendar className="h-4 w-4 text-red-500" />
-                        <span>{format(job.createdAt, 'MMM d, yyyy')}</span>
+                        <span>{format(new Date(job.createdAt), 'MMM d, yyyy')}</span>
                       </span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end space-y-3">
                     <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 shadow-sm font-medium px-3 py-1">
                       <Users className="h-3 w-3 mr-1" />
-                      {job.openPositions} positions
+                      {job.numOfPositions} positions
                     </Badge>
                     <div className="flex space-x-2">
                       <Button
@@ -178,7 +149,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                         View Details
                       </Button>
                       <Button
-                        onClick={() => onReferClick(job.id)}
+                        onClick={() => onReferClick(String(job.id))}
                         size="sm"
                         className="flex items-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                       >
@@ -193,26 +164,6 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                 <div className="bg-gradient-to-r from-gray-50 to-green-50/30 p-4 rounded-xl">
                   <p className="text-gray-700 leading-relaxed">{job.description}</p>
                 </div>
-                
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900 flex items-center">
-                    <Target className="h-4 w-4 mr-2 text-green-500" />
-                    Requirements:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {job.requirements.map((req, reqIndex) => (
-                      <Badge 
-                        key={req} 
-                        variant="secondary" 
-                        className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200 hover:scale-105 transition-transform duration-200"
-                        style={{ animationDelay: `${reqIndex * 50}ms` }}
-                      >
-                        {req}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200/50 animate-pulse-slow">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg">
@@ -220,7 +171,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-orange-800">
-                        💰 Referral Bonus: Earn ₹75,000
+                        💰 Referral Bonus: Earn ₹{job.bonusForReferral.toLocaleString()}
                       </p>
                       <p className="text-xs text-orange-700">
                         When your referral gets hired and stays for 6 months

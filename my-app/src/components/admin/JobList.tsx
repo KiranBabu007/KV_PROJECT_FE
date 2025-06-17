@@ -113,11 +113,21 @@ const JobList: React.FC = () => {
     );
   };
 
+  const [addJobs] = useAddJobMutation({})
+
   const deleteJob = (id: string) => {
     setJobs((prev) => prev.filter((job) => job.id !== id));
   };
 
-  
+  const handleJobFormSubmit = (data: any) => {
+    if ("id" in data) {
+      // Edit mode
+      updateJob(data.id, data.updates);
+    } else {
+      // Create mode
+      addJobs(data);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     return status === "active"
@@ -150,6 +160,8 @@ const JobList: React.FC = () => {
   if (error) {
     return <div>Error loading jobs: {error.toString()}</div>;
   }
+
+   
 
   return (
     <div className="space-y-6">

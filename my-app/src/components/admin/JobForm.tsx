@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import type { Job } from '@/types';
+import { useAddJobMutation } from '@/api-service/job/job.api';
 
 interface JobFormProps {
   onCancel?: () => void;
@@ -15,14 +16,17 @@ interface JobFormProps {
   // onSubmit?: (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> | { id: string; updates: Partial<Job> }) => void;
 }
 
-const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create'}) => {
+const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create' }) => {
+  const [addJob] = useAddJobMutation();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
-    salary: '',
-    experience: '',
-    totalPositions: 1,
+    salary: 0,
+    experience: 0,
+    numOfPositions: 1,
+    skills: '',
+    bonusForReferral: 0
   });
   const [requirements, setRequirements] = useState<string[]>([]);
   const [newRequirement, setNewRequirement] = useState('');
@@ -36,49 +40,42 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create'}) => {
         location: job.location,
         salary: job.salary,
         experience: job.experience,
-        totalPositions: job.totalPositions,
+        numOfPositions: job.totalPositions,
+        bonusForReferral: job.bonusForRefferal,
       });
       setRequirements(job.requirements);
     }
   }, [job, mode]);
 
-  const handleSubmit=()=>{
-   
-  
-    if (mode === 'edit') {
-      const payload = {
-        ...dataValues,
-       
-
-      };
-      create(payload)
-        .unwrap()
-        .then((response) => {
-          console.log("response is:", response);
-          navigate("/employees");
-        })
-        .catch((error) => {
-          setError(error.data.message);
-          console.log(error);
-        });
- 
-    } else {
-  
-      console.log("datavalues:", dataValues);
-      const payload = {
-        ...dataValues,
-        department: Number(dataValues?.department.id),
-        experience: Number(dataValues?.experience),
- 
-      };
-      console.log("payload:", payload);
-      update(payload)
-        .unwrap()
-        .then(() => {})
-        .catch((error) => {
-          setError(error.data.message);
-        });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
+    try {
+      // Convert requirements array to comma-separated string for skills
+      const jobData = {
+        ...formData,
+        skills: requirements.join(', ')
+      };
+
+      if (mode === 'create') {
+        await addJob(jobData).unwrap();
+        // Reset form after successful creation
+        setFormData({
+          title: '',
+          description: '',
+          location: '',
+          salary: 0,
+          experience: 0,
+          numOfPositions: 1,
+          skills: '',
+          bonusForReferral: 0
+        });
+        setRequirements([]);
+        onCancel?.();
+      }
+    } catch (error) {
+      console.error('Failed to create job:', error);
+    }
   };
 
   }
@@ -93,6 +90,7 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create'}) => {
     setRequirements(requirements.filter(r => r !== requirement));
   };
 
+  // Update the form inputs to handle number types correctly
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -122,32 +120,45 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create'}) => {
           <Label htmlFor="salary">Salary</Label>
           <Input
             id="salary"
-            placeholder="e.g., $80,000 - $120,000"
+            type="number"
             value={formData.salary}
-            onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="experience">Experience Required</Label>
+          <Label htmlFor="experience">Experience (Years)</Label>
           <Input
             id="experience"
-            placeholder="e.g., 3-5 years"
+            type="number"
+            min="0"
             value={formData.experience}
-            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, experience: Number(e.target.value) })}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="positions">Number of Positions</Label>
+          <Label htmlFor="numOfPositions">Number of Positions</Label>
           <Input
-            id="positions"
+            id="numOfPositions"
             type="number"
             min="1"
-            value={formData.totalPositions}
-            onChange={(e) => setFormData({ ...formData, totalPositions: parseInt(e.target.value) || 1 })}
+            value={formData.numOfPositions}
+            onChange={(e) => setFormData({ ...formData, numOfPositions: Number(e.target.value) })}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bonusForReferral">Referral Bonus</Label>
+          <Input
+            id="bonusForReferral"
+            type="number"
+            min="0"
+            value={formData.bonusForReferral}
+            onChange={(e) => setFormData({ ...formData, bonusForReferral: Number(e.target.value) })}
             required
           />
         </div>
