@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Calendar, User, CheckCircle, TrendingUp, Clock, Award } from 'lucide-react';
+import { DollarSign, Calendar, User, CheckCircle, TrendingUp, Clock, Award, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Bonus, Referral } from '@/types';
-import { useGetBonusListQuery } from '@/api-service/bonus/bonus.api';
+import { useGetBonusListQuery, usePatchBonusMutation } from '@/api-service/bonus/bonus.api';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Local mock data
 const mockReferrals: Referral[] = [
@@ -29,6 +30,9 @@ const mockReferrals: Referral[] = [
 
 const BonusManagement: React.FC = () => {
 	const { data: bonuses = [], isLoading } = useGetBonusListQuery({});
+	const [patchBonus] = usePatchBonusMutation();
+	const [showAlert, setShowAlert] = useState(false);
+	const [recentlyPaidBonus, setRecentlyPaidBonus] = useState<Bonus | null>(null);
 
 	// Update calculations for stats
 	const totalBonusesDue =
@@ -71,6 +75,26 @@ const BonusManagement: React.FC = () => {
 		);
 	}
 
+	const handleMarkAsPaid = async (bonus: Bonus) => {
+		try {
+			await patchBonus({
+				id: bonus.id,
+				status: 'SETTLED'  // Make sure this matches your API expectation
+			}).unwrap();
+			
+			setRecentlyPaidBonus(bonus);
+			setShowAlert(true);
+			
+			// Hide alert after 5 seconds
+			setTimeout(() => {
+				setShowAlert(false);
+				setRecentlyPaidBonus(null);
+			}, 5000);
+		} catch (error) {
+			console.error('Failed to update bonus status:', error);
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
 			<div className="max-w-7xl mx-auto space-y-8">
@@ -99,6 +123,17 @@ const BonusManagement: React.FC = () => {
 						</div>
 					</div>
 				</div>
+
+				{/* Add Alert here */}
+				{showAlert && recentlyPaidBonus && (
+					<Alert className="bg-green-50 border-green-200 text-green-800 animate-fade-in shadow-lg">
+						<AlertCircle className="h-4 w-4 text-green-600" />
+						<AlertTitle>Payment Successful</AlertTitle>
+						<AlertDescription>
+							Bonus payment of ₹{recentlyPaidBonus.bonusAmount.toLocaleString()} has been marked as paid.
+						</AlertDescription>
+					</Alert>
+				)}
 
 				{/* Enhanced Stats Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -240,9 +275,10 @@ const BonusManagement: React.FC = () => {
 											</span>
 										</div>
 										<div className="flex space-x-3">
-											{bonus.bonusStatus === 'PENDING' && (
+											{bonus.bonusStatus === 'DUE' && (
 												<Button
 													size="sm"
+													onClick={() => handleMarkAsPaid(bonus)}
 													className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
 												>
 													<CheckCircle className="h-4 w-4 mr-2" />
