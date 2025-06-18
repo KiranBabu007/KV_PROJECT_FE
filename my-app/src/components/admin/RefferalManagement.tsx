@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Search,
   Calendar,
@@ -24,8 +23,9 @@ import {
   Info,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { APIReferral, Referral } from "@/types";
+import { ReferralStatus, type APIReferral, type Referral } from "@/types";
 import {
+  useGetReferralsListQuery,
   useUpdateReferralStatusMutation,
   useConvertCandidateToEmployeeMutation,
 } from "@/api-service/referrals/referrals.api";
@@ -49,27 +49,39 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
 
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
-  const [getResume] = useGetResumeMutation();
-
-  const handleDownloadResume = useCallback(
-    async (resumeId: string, candidateName: string) => {
-      try {
-        const result = await getResume(resumeId).unwrap();
-        const blob = new Blob([result], { type: "application/pdf" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${candidateName}_Resume.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Failed to download resume:", error);
-        alert("Failed to download resume. Please try again.");
-      }
-    },
-    [getResume]
+  const [downloadResume] = useGetResumeMutation();
+  // Map API data to component format
+  const referrals = useMemo(
+    () =>
+      (referralsData || [])
+        .filter((ref): ref is APIReferral => ref !== null)
+        .map(
+          (ref): Referral => ({
+            id: String(ref.id),
+            jobId: String(ref.jobPosting?.id ?? ""),
+            jobTitle: ref.jobPosting?.title ?? "",
+            referrerId: String(ref.referrer?.id ?? ""),
+            referrerName: ref.referrer?.name ?? "",
+            candidateName: ref.referred?.name ?? "",
+            candidateEmail: ref.referred?.email ?? "",
+            candidatePhone: ref.referred?.phone ?? "",
+            status: ref.status ?? "Referral Submitted",
+            submittedAt: ref.createdAt ?? "",
+            updatedAt: ref.updatedAt ?? "",
+            referralCode: `REF-${String(ref.id).padStart(3, "0")}`,
+            bonusEligible: Boolean(ref.currentRound >= 1),
+            bonusPaid: false,
+            bonusAmount:
+              typeof ref.jobPosting?.bonusForReferral === "number"
+                ? ref.jobPosting.bonusForReferral
+                : 0,
+            resumeId: ref.resume?.id ? String(ref.resume.id) : null,
+            trackingToken: "", // Not present in APIReferral, set as needed
+            createdAt: ref.createdAt ?? "",
+            deletedAt: ref.deletedAt ?? null,
+          })
+        ),
+    [referralsData]
   );
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
@@ -125,16 +137,6 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
     }
   };
 
-  const enum ReferralStatus {
-    REFERRAL_SUBMITTED = "Referral Submitted",
-    REFERRAL_UNDER_REVIEW = "Referral Under Review",
-    REFERRAL_ACCEPTED = "Referral Accepted",
-    INTERVIEW_ROUND_1 = "Interviews Round 1",
-    INTERVIEWS_ROUND_2 = "Interview Round 2",
-    ACCEPTED = "Accepted",
-    REJECTED = "Rejected",
-  }
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case ReferralStatus.REFERRAL_SUBMITTED:
@@ -177,7 +179,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
     const lowercaseQuery = query.toLowerCase();
     return referrals.filter(
       (referral) =>
-        referral.referred.email.toLowerCase().includes(lowercaseQuery) ||
+        referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
@@ -452,6 +454,11 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
                               <Award className="h-4 w-4 mr-2 text-blue-600" />
                               Status Management
                             </label>
+                            <Badge
+                              className={`${getStatusColor(
+                                referral.status
+                              )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
+                            ></Badge>
                             <Badge
                               className={`${getStatusColor(
                                 referral.status
@@ -742,48 +749,6 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
                               </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        {referral.resumeId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 font-medium"
-                            onClick={() =>
-                              handleDownloadResume(
-                                referral.resumeId,
-                                referral.candidateName
-                              )
-                            }
-                          >
-                            <FileText className="h-4 w-4 mr-2 text-blue-600" />
-                            View Resume
-                          </Button>
-                        )}
-
-                        {/* Notes Section */}
-                        <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-800 flex items-center">
-                            <FileText className="h-4 w-4 mr-2 text-gray-600" />
-                            Administrative Notes
-                          </label>
-                          <Textarea
-                            placeholder="Add internal notes about this referral (candidate assessment, interview feedback, etc.)..."
-                            className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 min-h-[120px] transition-all duration-200 resize-none"
-                            value={referral.notes || ""}
-                            // You might need a separate mutation or local state for notes if they are not part of the status update
-                            // For now, removing the onChange as it attempts to update a non-existent local state
-                            // onChange={(e) =>
-                            //   updateReferral(referral.id, {
-                            //     notes: e.target.value,
-                            //   })
-                            // }
-                          />
-                          <p className="text-xs text-gray-500">
-                            These notes are for internal use only and will not
-                            be visible to the referrer or candidate.
-                          </p>
                         </div>
                       </CardContent>
                     </Card>
