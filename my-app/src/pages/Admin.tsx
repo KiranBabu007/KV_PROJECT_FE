@@ -22,28 +22,31 @@ const AdminDashboard: React.FC = () => {
 
   // Fetch jobs from API
   const { data: jobs = [], refetch } = useGetJobsListQuery({});
+  console.log(jobs)
   const [addJobMutation] = useAddJobMutation();
 
   // Replace the useState for referrals with the query
   const { data: referralsData = [], isLoading: referralsLoading } = useGetReferralsListQuery();
 
   // Map API data to your component's format
-  const referrals = referralsData.map((ref: APIReferral): Referral => ({
-    id: String(ref.id),
-    jobId: String(ref.jobPosting.id),
-    jobTitle: ref.jobPosting.title,
-    referrerId: String(ref.referrer.id),
-    referrerName: ref.referrer.name,
-    candidateName: ref.referred.name,
-    candidateEmail: ref.referred.email,
-    candidatePhone: ref.referred.phone,
-    status: ref.status.toLowerCase().replace(/ /g, '_'),
-    submittedAt: new Date(ref.createdAt),
-    updatedAt: new Date(ref.updatedAt),
-    referralCode: `REF-${ref.id.toString().padStart(3, '0')}`,
-    bonusEligible: false, // You might want to calculate this based on status
-    bonusPaid: false, // You might want to calculate this based on bonus status
-  }));
+  const referrals = referralsData
+    .filter(ref => ref.jobPosting && ref.referrer && ref.referred)
+    .map((ref: APIReferral): Referral => ({
+      id: String(ref.id),
+      jobId: String(ref.jobPosting.id),
+      jobTitle: ref.jobPosting.title,
+      referrerId: String(ref.referrer.id),
+      referrerName: ref.referrer.name,
+      candidateName: ref.referred.name,
+      candidateEmail: ref.referred.email,
+      candidatePhone: ref.referred.phone,
+      status: ref.status?.toLowerCase().replace(/ /g, '_') || '',
+      submittedAt: new Date(ref.createdAt),
+      updatedAt: new Date(ref.updatedAt),
+      referralCode: `REF-${ref.id.toString().padStart(3, '0')}`,
+      bonusEligible: false,
+      bonusPaid: false,
+    }));
 
   // Add bonus query
   const { data: bonusesData = [], isLoading: bonusesLoading } = useGetBonusListQuery({});
