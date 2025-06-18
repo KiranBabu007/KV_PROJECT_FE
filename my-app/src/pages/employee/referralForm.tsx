@@ -11,39 +11,39 @@ import {
 } from "@/api-service/resume/resume.api";
 
 // Local mock data
-const mockJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    description:
-      "We are looking for an experienced software engineer to join our team.",
-    requirements: ["React", "TypeScript", "5+ years experience"],
-    location: "San Francisco, CA",
-    department: "Engineering",
-    salary: "₹90,00,000 - ₹1,35,00,000",
-    experience: "5+ years",
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    description: "Lead product strategy and development for our core platform.",
-    requirements: ["Product Management", "Agile", "3+ years experience"],
-    location: "New York, NY",
-    department: "Product",
-    salary: "₹75,00,000 - ₹1,05,00,000",
-    experience: "3-5 years",
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date("2024-01-20"),
-    updatedAt: new Date("2024-01-20"),
-    status: "active",
-  },
-];
+// const mockJobs: Job[] = [
+//   {
+//     id: "1",
+//     title: "Senior Software Engineer",
+//     description:
+//       "We are looking for an experienced software engineer to join our team.",
+//     requirements: ["React", "TypeScript", "5+ years experience"],
+//     location: "San Francisco, CA",
+//     department: "Engineering",
+//     salary: "₹90,00,000 - ₹1,35,00,000",
+//     experience: "5+ years",
+//     openPositions: 2,
+//     totalPositions: 3,
+//     createdAt: new Date("2024-01-15"),
+//     updatedAt: new Date("2024-01-15"),
+//     status: "active",
+//   },
+//   {
+//     id: "2",
+//     title: "Product Manager",
+//     description: "Lead product strategy and development for our core platform.",
+//     requirements: ["Product Management", "Agile", "3+ years experience"],
+//     location: "New York, NY",
+//     department: "Product",
+//     salary: "₹75,00,000 - ₹1,05,00,000",
+//     experience: "3-5 years",
+//     openPositions: 1,
+//     totalPositions: 1,
+//     createdAt: new Date("2024-01-20"),
+//     updatedAt: new Date("2024-01-20"),
+//     status: "active",
+//   },
+// ];
 
 const mockReferrals: Referral[] = [
   {
@@ -83,11 +83,14 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
     candidateName: "",
     candidateEmail: "",
     candidatePhone: "",
+    experience:0,
+    resume:0,
     notes: "",
   });
 
   // const {data:resumeFile} = useGetResumeQuery(id)
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeId, setResumeId] = useState<number | null>(null);
   const [sendResume] = useSendResumeMutation();
   const [loading, setLoading] = useState(false);
   const [trackingLink, setTrackingLink] = useState<string | null>(null);
@@ -155,11 +158,12 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
         try {
           const formData = new FormData();
           formData.append("resume", file);
-
+            
           const response = await sendResume(formData).unwrap();
           if (response && response.id) {
             setSuccessMessage("Resume uploaded successfully");
             setTimeout(() => setSuccessMessage(null), 3000);
+            setResumeId(response.id);
           }
         } catch (error) {
           setErrorMessage("Failed to upload resume. Please try again.");
@@ -171,58 +175,49 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage(null);
+  e.preventDefault();
+  setLoading(true);
+  setErrorMessage(null);
 
-    try {
-      // Check for duplicate email
-      const existingReferral = referrals.find(
-        (r) => r.candidateEmail === formData.candidateEmail && r.jobId === jobId
-      );
+  try {
+    // Prepare the payload in the required format
+    const payload = {
+      referrerId: user.id,
+      referred: {
+        person: {
+          name: formData.candidateName,
+          phone: formData.candidatePhone,
+          email: formData.candidateEmail,
+        },
+        yearsOfExperience: Number(formData.experience),
+      },
+      jobPostingId: job.id,
+      resumeId:resumeId
+    };
 
-      if (existingReferral) {
-        setErrorMessage("This candidate has already been referred for this position.");
-        return;
-      }
-
-      const trackingToken = addReferral({
-        jobId,
-        jobTitle: job.title,
-        referrerId: user.id,
-        referrerName: user.name,
-        candidateName: formData.candidateName,
-        candidateEmail: formData.candidateEmail,
-        candidatePhone: formData.candidatePhone,
-        status: "submitted",
-        bonusEligible: false,
-        bonusPaid: false,
-        notes: formData.notes,
-        resumeUrl: resumeFile
-          ? `resume-${Date.now()}-${resumeFile.name}`
-          : undefined,
-      });
-
-      // Generate tracking link
+    // TODO: Replace this with your actual API call
+    // await submitReferral(payload);
+     // Generate tracking link
       const link = `${window.location.origin}/track/${trackingToken}`;
       setTrackingLink(link);
 
-      setSuccessMessage("Referral submitted successfully!");
-      
-      // Reset form except tracking link
-      setFormData({
-        candidateName: "",
-        candidateEmail: "",
-        candidatePhone: "",
-        notes: "",
-      });
-      setResumeFile(null);
-    } catch (error) {
-      setErrorMessage("Failed to submit referral. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setSuccessMessage("Referral submitted successfully!");
+    setFormData({
+      candidateName: "",
+      candidateEmail: "",
+      candidatePhone: "",
+      experience: 0,
+      resume: 0,
+      notes: "",
+    });
+  } catch (error) {
+    setErrorMessage("Failed to submit referral. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+     
 
   if (hasRecentReferral) {
     return (
@@ -363,7 +358,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
             />
           </div>
 
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2 ">
             <Label htmlFor="candidatePhone">Phone Number *</Label>
             <Input
               id="candidatePhone"
@@ -374,7 +369,22 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
               }
               required
             />
+            
           </div>
+          <div className="space-y-2 ">
+            <Label htmlFor="experience">Experience</Label>
+            <Input
+              id="experience"
+              type="tel"
+              value={formData.experience}
+              onChange={(e) =>
+                setFormData({ ...formData,  experience:Number(e.target.value) })
+              }
+              required
+            />
+            
+          </div>
+          
         </div>
 
         <div className="space-y-2">
