@@ -1,85 +1,82 @@
-
-import React, { useState, useMemo, useCallback } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Search, Calendar, User, Mail, Phone, FileText, Clock, Award, Users,Info } from 'lucide-react';
-import { format } from 'date-fns';
-import type { APIReferral, Referral } from '@/types';
-import { 
-  useGetReferralsListQuery,
+import React, { useState, useMemo, useCallback } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Search,
+  Calendar,
+  User,
+  Mail,
+  Phone,
+  FileText,
+  Clock,
+  Award,
+  Users,
+  Info,
+} from "lucide-react";
+import { format } from "date-fns";
+import type { APIReferral, Referral } from "@/types";
+import {
   useUpdateReferralStatusMutation,
-  useConvertCandidateToEmployeeMutation
-} from '@/api-service/referrals/referrals.api';
-import { useGetResumeMutation,useSendResumeMutation } from '@/api-service/resume/resume.api';
+  useConvertCandidateToEmployeeMutation,
+} from "@/api-service/referrals/referrals.api";
+import { useGetResumeMutation } from "@/api-service/resume/resume.api";
 
+interface RefferalManagementProps {
+  referrals: APIReferral[];
+  isLoading: boolean;
+}
 
-
-const ReferralManagement: React.FC = () => {
+const ReferralManagement: React.FC<RefferalManagementProps> = ({
+  referrals,
+  isLoading,
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
 
-
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
-  const [joiningDate, setJoiningDate] = useState<string>('');
+  const [joiningDate, setJoiningDate] = useState<string>("");
   const [isConverting, setIsConverting] = useState(false);
-  
-  // Replace api.referrals with RTK Query hooks
-  const { data: referralsData = [], isLoading } = useGetReferralsListQuery(undefined, {
-  selectFromResult: ({ data, ...rest }) => ({
-    data: data ?? [], // Ensure data is never undefined
-    ...rest
-  })
-});
 
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
-  const [downloadResume]=useGetResumeMutation();
-  // Map API data to component format
-  const referrals = useMemo(() => 
-    (referralsData || [])
-      .filter((ref): ref is NonNullable<typeof ref> => ref !== null) // Filter out null values
-      .map((ref): APIReferral => ({
-        id: String(ref.id),
-        jobId: String(ref.jobPosting?.id || ''),
-        jobTitle: ref.jobPosting?.title || '',
-        referrerId: String(ref.referrer?.id || ''),
-        referrerName: ref.referrer?.name || '',
-        candidateName: ref.referred?.name || '',
-        candidateEmail: ref.referred?.email || '',
-        candidatePhone: ref.referred?.phone || '',
-        status: ref.status || 'Referral Submitted',
-        submittedAt: new Date(ref.createdAt || Date.now()),
-        updatedAt: new Date(ref.updatedAt || Date.now()),
-        referralCode: `REF-${String(ref.id).padStart(3, '0')}`,
-        bonusEligible: Boolean(ref.currentRound >= 1),
-        bonusPaid: false,
-        yearsOfExperience: ref.referred?.candidate?.yearsOfExperience || 0,
-        skills: ref.jobPosting?.skills || '',
-        location: ref.jobPosting?.location || '',
-        jobDescription: ref.jobPosting?.description || '',
-        bonusAmount: ref.jobPosting?.bonusForReferral || 0,
-        resumeId: ref.resume?.id || null,
-      })), [referralsData]
+  const [getResume] = useGetResumeMutation();
 
-
+  const handleDownloadResume = useCallback(
+    async (resumeId: string, candidateName: string) => {
+      try {
+        const result = await getResume(resumeId).unwrap();
+        const blob = new Blob([result], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${candidateName}_Resume.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download resume:", error);
+        alert("Failed to download resume. Please try again.");
+      }
+    },
+    [getResume]
   );
-
-
-
-
-    
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
     try {
       await updateStatus({
         id: parseInt(referralId),
-        status: newStatus
-
-
+        status: newStatus,
       }).unwrap();
       setPendingStatus(null); // Reset pending status after successful update
     } catch (error) {
@@ -87,50 +84,44 @@ const ReferralManagement: React.FC = () => {
     }
   };
 
-  // Add this function to handle candidate conversion
   const handleConvertToEmployee = async (referralId: string) => {
     if (!joiningDate) {
-      console.error('Joining date is required');
+      console.error("Joining date is required");
       return;
-
     }
-    
+
     try {
       setIsConverting(true);
-      console.log('Starting conversion process...', {
+      console.log("Starting conversion process...", {
         referralId,
-        joiningDate: new Date(joiningDate).toISOString()
+        joiningDate: new Date(joiningDate).toISOString(),
       });
 
       await convertToEmployee({
         referralId: parseInt(referralId),
-        joiningDate: new Date(joiningDate).toISOString()
+        joiningDate: new Date(joiningDate).toISOString(),
       }).unwrap();
 
-      console.log('Conversion successful ✅', {
+      console.log("Conversion successful ✅", {
         referralId,
-        status: 'SUCCESS',
-        timestamp: new Date().toISOString()
+        status: "SUCCESS",
+        timestamp: new Date().toISOString(),
       });
-
-
     } catch (error) {
-      console.error('Conversion failed ❌', {
+      console.error("Conversion failed ❌", {
         referralId,
-        status: 'FAILED',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        status: "FAILED",
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString(),
       });
-      
-      // Re-throw the error if you want to handle it in the UI
+
       throw error;
     } finally {
       setIsConverting(false);
-      console.log('Conversion process completed', {
+      console.log("Conversion process completed", {
         referralId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     }
   };
 
@@ -141,46 +132,46 @@ const ReferralManagement: React.FC = () => {
     INTERVIEW_ROUND_1 = "Interviews Round 1",
     INTERVIEWS_ROUND_2 = "Interview Round 2",
     ACCEPTED = "Accepted",
-    REJECTED = "Rejected"
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case ReferralStatus.REFERRAL_SUBMITTED: 
-      return 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-200';
-    case ReferralStatus.REFERRAL_UNDER_REVIEW: 
-      return 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border-yellow-200';
-    case ReferralStatus.REFERRAL_ACCEPTED:
-    case ReferralStatus.ACCEPTED:
-      return 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-200';
-    case ReferralStatus.INTERVIEW_ROUND_1:
-    case ReferralStatus.INTERVIEWS_ROUND_2:
-      return 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-200';
-    case ReferralStatus.REJECTED:
-      return 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-200';
-    default:
-      return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border-gray-200';
+    REJECTED = "Rejected",
   }
-};
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case ReferralStatus.REFERRAL_SUBMITTED:
-      return <Clock className="h-3 w-3" />;
-    case ReferralStatus.REFERRAL_UNDER_REVIEW:
-      return <Search className="h-3 w-3" />;
-    case ReferralStatus.REFERRAL_ACCEPTED:
-    case ReferralStatus.ACCEPTED:
-      return <Award className="h-3 w-3" />;
-    case ReferralStatus.INTERVIEW_ROUND_1:
-    case ReferralStatus.INTERVIEWS_ROUND_2:
-      return <Calendar className="h-3 w-3" />;
-    case ReferralStatus.REJECTED:
-      return <User className="h-3 w-3" />;
-    default:
-      return <Clock className="h-3 w-3" />;
-  }
-};
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case ReferralStatus.REFERRAL_SUBMITTED:
+        return "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-200";
+      case ReferralStatus.REFERRAL_UNDER_REVIEW:
+        return "bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border-yellow-200";
+      case ReferralStatus.REFERRAL_ACCEPTED:
+      case ReferralStatus.ACCEPTED:
+        return "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-200";
+      case ReferralStatus.INTERVIEW_ROUND_1:
+      case ReferralStatus.INTERVIEWS_ROUND_2:
+        return "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-200";
+      case ReferralStatus.REJECTED:
+        return "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case ReferralStatus.REFERRAL_SUBMITTED:
+        return <Clock className="h-3 w-3" />;
+      case ReferralStatus.REFERRAL_UNDER_REVIEW:
+        return <Search className="h-3 w-3" />;
+      case ReferralStatus.REFERRAL_ACCEPTED:
+      case ReferralStatus.ACCEPTED:
+        return <Award className="h-3 w-3" />;
+      case ReferralStatus.INTERVIEW_ROUND_1:
+      case ReferralStatus.INTERVIEWS_ROUND_2:
+        return <Calendar className="h-3 w-3" />;
+      case ReferralStatus.REJECTED:
+        return <User className="h-3 w-3" />;
+      default:
+        return <Clock className="h-3 w-3" />;
+    }
+  };
 
   const searchReferrals = (query: string): Referral[] => {
     const lowercaseQuery = query.toLowerCase();
@@ -383,8 +374,7 @@ const getStatusIcon = (status: string) => {
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card selection when button is clicked
-                                  downloadResume(referral.resumeId)
-
+                                  downloadResume(referral.resumeId);
                                 }}
                               >
                                 Download Resume
@@ -467,25 +457,18 @@ const getStatusIcon = (status: string) => {
                                 referral.status
                               )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
                             >
-
-                            <Badge
-                              className={`${getStatusColor(
-                                referral.status
-                              )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
-                            >
                               {getStatusIcon(referral.status)}
-
                               {referral.status}
                             </Badge>
                           </div>
-                          
+
                           {referral.status === ReferralStatus.ACCEPTED ? (
                             <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex items-center text-green-800 text-sm font-medium">
                                 <Award className="h-4 w-4 mr-2 text-green-600" />
                                 Candidate has been accepted
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <label className="block text-sm font-medium text-gray-700">
                                   Set Joining Date
@@ -493,14 +476,18 @@ const getStatusIcon = (status: string) => {
                                 <Input
                                   type="date"
                                   value={joiningDate}
-                                  onChange={(e) => setJoiningDate(e.target.value)}
+                                  onChange={(e) =>
+                                    setJoiningDate(e.target.value)
+                                  }
                                   className="w-full border-2 border-gray-200 focus:border-green-300"
-                                  min={new Date().toISOString().split('T')[0]}
+                                  min={new Date().toISOString().split("T")[0]}
                                 />
                               </div>
-                              
+
                               <Button
-                                onClick={() => handleConvertToEmployee(referral.id)}
+                                onClick={() =>
+                                  handleConvertToEmployee(referral.id)
+                                }
                                 disabled={!joiningDate || isConverting}
                                 className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
                               >
@@ -516,62 +503,99 @@ const getStatusIcon = (status: string) => {
                                   </>
                                 )}
                               </Button>
-                              
+
                               <p className="text-xs text-green-600 flex items-center gap-1">
                                 <Info className="h-3 w-3" />
-                                This will create an employee account for the candidate
+                                This will create an employee account for the
+                                candidate
                               </p>
                             </div>
                           ) : (
                             <div className="flex gap-2">
                               <Select
                                 value={pendingStatus || referral.status}
-                                onValueChange={(value) => setPendingStatus(value)}
+                                onValueChange={(value) =>
+                                  setPendingStatus(value)
+                                }
                               >
                                 <SelectTrigger className="flex-1 bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
                                   <div className="flex items-center space-x-2">
-                                    {getStatusIcon(pendingStatus || referral.status)}
+                                    {getStatusIcon(
+                                      pendingStatus || referral.status
+                                    )}
                                     <SelectValue />
                                   </div>
                                 </SelectTrigger>
                                 <SelectContent className="bg-white border-gray-200 shadow-2xl rounded-lg">
-                                  <SelectItem value={ReferralStatus.REFERRAL_SUBMITTED} className="hover:bg-blue-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.REFERRAL_SUBMITTED}
+                                    className="hover:bg-blue-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Clock className="h-4 w-4 text-blue-600" />
-                                      <span>📋 {ReferralStatus.REFERRAL_SUBMITTED}</span>
+                                      <span>
+                                        📋 {ReferralStatus.REFERRAL_SUBMITTED}
+                                      </span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.REFERRAL_UNDER_REVIEW} className="hover:bg-yellow-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.REFERRAL_UNDER_REVIEW}
+                                    className="hover:bg-yellow-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Search className="h-4 w-4 text-yellow-600" />
-                                      <span>🔍 {ReferralStatus.REFERRAL_UNDER_REVIEW}</span>
+                                      <span>
+                                        🔍{" "}
+                                        {ReferralStatus.REFERRAL_UNDER_REVIEW}
+                                      </span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.REFERRAL_ACCEPTED} className="hover:bg-green-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.REFERRAL_ACCEPTED}
+                                    className="hover:bg-green-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Award className="h-4 w-4 text-green-600" />
-                                      <span>✅ {ReferralStatus.REFERRAL_ACCEPTED}</span>
+                                      <span>
+                                        ✅ {ReferralStatus.REFERRAL_ACCEPTED}
+                                      </span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.INTERVIEW_ROUND_1} className="hover:bg-purple-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.INTERVIEW_ROUND_1}
+                                    className="hover:bg-purple-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Calendar className="h-4 w-4 text-purple-600" />
-                                      <span>📅 {ReferralStatus.INTERVIEW_ROUND_1}</span>
+                                      <span>
+                                        📅 {ReferralStatus.INTERVIEW_ROUND_1}
+                                      </span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.INTERVIEWS_ROUND_2} className="hover:bg-indigo-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.INTERVIEWS_ROUND_2}
+                                    className="hover:bg-indigo-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Calendar className="h-4 w-4 text-indigo-600" />
-                                      <span>📅 {ReferralStatus.INTERVIEWS_ROUND_2}</span>
+                                      <span>
+                                        📅 {ReferralStatus.INTERVIEWS_ROUND_2}
+                                      </span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.ACCEPTED} className="hover:bg-green-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.ACCEPTED}
+                                    className="hover:bg-green-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <Award className="h-4 w-4 text-green-600" />
                                       <span>✅ {ReferralStatus.ACCEPTED}</span>
                                     </div>
                                   </SelectItem>
-                                  <SelectItem value={ReferralStatus.REJECTED} className="hover:bg-red-50 cursor-pointer">
+                                  <SelectItem
+                                    value={ReferralStatus.REJECTED}
+                                    className="hover:bg-red-50 cursor-pointer"
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <User className="h-4 w-4 text-red-600" />
                                       <span>❌ {ReferralStatus.REJECTED}</span>
@@ -581,14 +605,24 @@ const getStatusIcon = (status: string) => {
                               </Select>
                               <Button
                                 onClick={() => {
-                                  if (pendingStatus && pendingStatus !== referral.status) {
-                                    handleStatusUpdate(referral.id, pendingStatus);
+                                  if (
+                                    pendingStatus &&
+                                    pendingStatus !== referral.status
+                                  ) {
+                                    handleStatusUpdate(
+                                      referral.id,
+                                      pendingStatus
+                                    );
                                     setPendingStatus(null);
                                   }
                                 }}
-                                disabled={!pendingStatus || pendingStatus === referral.status}
+                                disabled={
+                                  !pendingStatus ||
+                                  pendingStatus === referral.status
+                                }
                                 className={`px-4 ${
-                                  !pendingStatus || pendingStatus === referral.status
+                                  !pendingStatus ||
+                                  pendingStatus === referral.status
                                     ? "bg-gray-100 text-gray-400"
                                     : "bg-blue-600 hover:bg-blue-700 text-white"
                                 }`}
@@ -597,7 +631,6 @@ const getStatusIcon = (status: string) => {
                               </Button>
                             </div>
                           )}
-
                         </div>
 
                         {/* Information Cards Grid */}
@@ -717,7 +750,12 @@ const getStatusIcon = (status: string) => {
                             variant="outline"
                             size="sm"
                             className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 font-medium"
-                            onClick={() => handleDownloadResume(referral.resumeId, referral.candidateName)}
+                            onClick={() =>
+                              handleDownloadResume(
+                                referral.resumeId,
+                                referral.candidateName
+                              )
+                            }
                           >
                             <FileText className="h-4 w-4 mr-2 text-blue-600" />
                             View Resume
