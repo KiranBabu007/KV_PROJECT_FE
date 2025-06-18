@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, X, Copy, Check } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import type { Job, Referral, User } from "@/types";
 import {
   useGetResumeQuery,
@@ -93,6 +92,8 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [trackingLink, setTrackingLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const job = jobs.find((j) => j.id === jobId);
 
@@ -140,10 +141,6 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
       await navigator.clipboard.writeText(text);
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
-      toast({
-        title: "Link copied!",
-        description: "The tracking link has been copied to your clipboard.",
-      });
     } catch (err) {
       console.error("Failed to copy: ", err);
     }
@@ -154,23 +151,21 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
     if (file) {
       if (file.type === "application/pdf" || file.type.includes("document")) {
         setResumeFile(file);
+        setErrorMessage(null);
         try {
           const formData = new FormData();
           formData.append("resume", file);
 
           const response = await sendResume(formData).unwrap();
           if (response && response.id) {
-            console.log("Resume uploaded, returned id:", response.id);
+            setSuccessMessage("Resume uploaded successfully");
+            setTimeout(() => setSuccessMessage(null), 3000);
           }
         } catch (error) {
-          console.error("Failed to send file:", error);
+          setErrorMessage("Failed to upload resume. Please try again.");
         }
       } else {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a PDF or Word document.",
-          variant: "destructive",
-        });
+        setErrorMessage("Please upload a PDF or Word document.");
       }
     }
   };
@@ -178,6 +173,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
       // Check for duplicate email
@@ -186,12 +182,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
       );
 
       if (existingReferral) {
-        toast({
-          title: "Duplicate referral",
-          description:
-            "This candidate has already been referred for this position.",
-          variant: "destructive",
-        });
+        setErrorMessage("This candidate has already been referred for this position.");
         return;
       }
 
@@ -216,12 +207,8 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
       const link = `${window.location.origin}/track/${trackingToken}`;
       setTrackingLink(link);
 
-      toast({
-        title: "Referral submitted!",
-        description:
-          "Your referral has been submitted successfully. Share the tracking link with the candidate.",
-      });
-
+      setSuccessMessage("Referral submitted successfully!");
+      
       // Reset form except tracking link
       setFormData({
         candidateName: "",
@@ -231,11 +218,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
       });
       setResumeFile(null);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit referral. Please try again.",
-        variant: "destructive",
-      });
+      setErrorMessage("Failed to submit referral. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -335,6 +318,25 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Add this error and success message box above the form fields */}
+        {errorMessage && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+            <div className="flex items-center">
+              <X className="h-5 w-5 text-red-400 mr-2" />
+              <p className="text-sm text-red-700">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-400 mr-2" />
+              <p className="text-sm text-green-700">{successMessage}</p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="candidateName">Candidate Name *</Label>
