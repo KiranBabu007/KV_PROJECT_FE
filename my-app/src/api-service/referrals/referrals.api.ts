@@ -1,4 +1,4 @@
-import type { Referral } from "@/types";
+import type { APIReferral, Referral } from "@/types";
 import baseApi from "../api";
 import type { EmployeeReferralsResponse } from "./types";
 import type { ReferralsResponse } from "../candidate/types";
@@ -6,7 +6,7 @@ import type { ReferralsResponse } from "../candidate/types";
 export const referralApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Get all referrals
-    getReferralsList: builder.query<Referral[], void>({
+    getReferralsList: builder.query<APIReferral[], void>({
       query: () => ({
         url: "/referral",
         method: "GET",

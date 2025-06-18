@@ -14,7 +14,7 @@ import {
   useUpdateReferralStatusMutation,
   useConvertCandidateToEmployeeMutation
 } from '@/api-service/referrals/referrals.api';
-import { useGetResumeQuery } from '@/api-service/resume/resume.api';
+import { useGetResumeMutation,useSendResumeMutation } from '@/api-service/resume/resume.api';
 
 
 const ReferralManagement: React.FC = () => {
@@ -35,8 +35,7 @@ const ReferralManagement: React.FC = () => {
 
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
-
-
+  const [downloadResume]=useGetResumeMutation();
   // Map API data to component format
   const referrals = useMemo(() => 
     (referralsData || [])
@@ -61,40 +60,13 @@ const ReferralManagement: React.FC = () => {
         location: ref.jobPosting?.location || '',
         jobDescription: ref.jobPosting?.description || '',
         bonusAmount: ref.jobPosting?.bonusForReferral || 0,
-        resumeUrl: ref.resume?.url || null,
+        resumeId: ref.resume?.id || null,
       })), [referralsData]
 
   );
 
-  const { data: resumeData } = useGetResumeQuery(selectedReferral ? (referrals.find(r => r.id === selectedReferral)?.resumeId || "") : "", {
-    skip: !selectedReferral || !referrals.find(r => r.id === selectedReferral)?.resumeId,
-  });
 
 
-  const handleDownloadResume = useCallback(async (resumeId: number | null, candidateName: string) => {
-    if (resumeId) {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/resume/${resumeId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${candidateName}_Resume.pdf`; // You might want to get the actual filename from headers or API
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Failed to download resume:", error);
-        // Optionally, show a toast or error message to the user
-      }
-    } else {
-      console.warn("No resume ID available for download.");
-    }
-  }, []);
 
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
@@ -210,7 +182,7 @@ const getStatusIcon = (status: string) => {
     const lowercaseQuery = query.toLowerCase();
     return referrals.filter(
       (referral) =>
-        referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
+        referral.referred.email.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
@@ -242,7 +214,7 @@ const getStatusIcon = (status: string) => {
   };
 
   const stats = getStatsCards();
-
+  console.log(referrals);
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -407,7 +379,7 @@ const getStatusIcon = (status: string) => {
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card selection when button is clicked
-                                  handleDownloadResume(referral.resumeId, referral.candidateName);
+                                  downloadResume(referral.resumeId)
                                 }}
                               >
                                 Download Resume
