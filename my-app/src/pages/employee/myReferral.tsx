@@ -44,7 +44,7 @@ const getEmployeeID = () => {
 
   try {
     const decoded = jwtDecode<MyJwtPayload>(token);
-    return decoded.employeeId;
+    return decoded.personId;
   } catch (error) {
     console.error("Error decoding token:", error);
     return "";

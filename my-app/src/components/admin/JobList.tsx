@@ -30,22 +30,25 @@ import {
   Target,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { Job } from '@/types';
+import type { Job } from "@/types";
 import JobForm from "./JobForm";
-import { useAddJobMutation, useDeleteJobMutation, usePatchJobMutation } from "@/api-service/job/job.api.ts";
+import {
+  useAddJobMutation,
+  useDeleteJobMutation,
+  usePatchJobMutation,
+} from "@/api-service/job/job.api.ts";
 
 interface JobListProps {
- 
   jobs?: Job[];
 }
 
-const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
+const JobList: React.FC<JobListProps> = ({ jobs = [] }) => {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // State for delete confirmation dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [jobToDeleteId, setJobToDeleteId] = useState<string | null>(null);
+  const [jobToDeleteId, setJobToDeleteId] = useState<number | null>(null);
 
   // RTK Query mutations
   const [addJobMutation] = useAddJobMutation();
@@ -53,8 +56,8 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
   const [deleteJobMutation] = useDeleteJobMutation();
 
   // Function to initiate delete (opens confirmation dialog)
-  const handleDeleteClick = (id: string) => {
-    setJobToDeleteId(id);
+  const handleDeleteClick = (id: number) => {
+    setJobToDeleteId(Number(id));
     setIsDeleteDialogOpen(true);
   };
 
@@ -98,17 +101,17 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
       : "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200";
   };
 
-  const handleToggleStatus = async (job: Job) => {
-    try {
-      const newStatus = job.status === "active" ? "closed" : "active";
-      await patchJobMutation({
-        id: job.id,
-        status: newStatus,
-      }).unwrap();
-    } catch (error) {
-      console.error("Error toggling job status:", error);
-    }
-  };
+  // const handleToggleStatus = async (job: Job) => {
+  //   try {
+  //     const newStatus = job.status === "active" ? "closed" : "active";
+  //     await patchJobMutation({
+  //       id: job.id,
+  //       status: newStatus,
+  //     }).unwrap();
+  //   } catch (error) {
+  //     console.error("Error toggling job status:", error);
+  //   }
+  // };
 
   const handleEditJob = (job: Job) => {
     setEditingJob(job);
@@ -157,17 +160,19 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
                       {job.title}
                     </CardTitle>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-sm text-gray-600">
-                    <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
-                      <MapPin className="h-4 w-4 text-blue-500" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10  text-sm text-gray-600 ">
+                    <span className="flex items-center space-x-1 w-80 bg-white/70 px-2 py-1 rounded-lg">
+                      <MapPin className="h-4 w-5 text-blue-500" />
                       <span>{job.location}</span>
                     </span>
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <DollarSign className="h-4 w-4 text-purple-500" />
+                      <span>Salary:</span>
                       <span>{job.salary}</span>
                     </span>
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <Clock className="h-4 w-4 text-orange-500" />
+                      <span>Experience:</span>
                       <span>{job.experience}</span>
                     </span>
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
@@ -177,16 +182,16 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Badge
+                  {/* <Badge
                     className={`${getStatusColor(
                       job.status
                     )} border shadow-sm font-medium px-3 py-1`}
                   >
                     {job.status}
-                  </Badge>
+                  </Badge> */}
                   <Badge className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 border-indigo-200 shadow-sm font-medium px-3 py-1">
                     <Users className="h-3 w-3 mr-1" />
-                    {job.openPositions}/{job.totalPositions}
+                    {job.numOfPositions-job.remainingPositions}/{job.numOfPositions}
                   </Badge>
                 </div>
               </div>
@@ -203,33 +208,35 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
                   Requirements:
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                 {(job.requirements || []).map((req, reqIndex) => (
-                    <Badge
-                      key={`${req}-${reqIndex}`}
-                      variant="secondary"
-                      className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 hover:scale-105 transition-transform duration-200"
-                      style={{ animationDelay: `${reqIndex * 50}ms` }}
-                    >
-                      {req}
-                    </Badge>
-                  ))}
+                  {(job.skills ? job.skills.split(",") : []).map(
+                    (skill, skillIndex) => (
+                      <Badge
+                        key={`${skill.trim()}-${skillIndex}`}
+                        variant="secondary"
+                        className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 hover:scale-105 transition-transform duration-200"
+                        style={{ animationDelay: `${skillIndex * 50}ms` }}
+                      >
+                        {skill.trim()}
+                      </Badge>
+                    )
+                  )}
                 </div>
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                 <div className="text-sm text-gray-600 bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-lg">
                   <span className="font-medium text-green-800">
-                    {job.openPositions} positions available
+                    {job.remainingPositions} positions available
                   </span>
                 </div>
                 <div className="flex space-x-2">
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleToggleStatus(job)}
                     className="hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
-                    {job.status === "active" ? "Close Job" : "Reopen Job"}
-                  </Button>
+                  {job.status === "active" ? "Close Job" : "Reopen Job"}
+                  </Button> */}
                   <Button
                     variant="outline"
                     size="sm"
@@ -241,7 +248,7 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDeleteClick(job.id)}
+                    onClick={() => handleDeleteClick(Number(job.id))}
                     className="hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -271,7 +278,10 @@ const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
       </Dialog>
 
       {/* Delete Confirmation AlertDialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

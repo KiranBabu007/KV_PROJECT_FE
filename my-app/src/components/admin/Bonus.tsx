@@ -21,24 +21,24 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Local mock data
-const mockReferrals: Referral[] = [
-  {
-    id: "1",
-    jobId: "1",
-    jobTitle: "Senior Software Engineer",
-    referrerId: "1",
-    referrerName: "John Doe",
-    candidateName: "Jane Smith",
-    candidateEmail: "jane.smith@email.com",
-    candidatePhone: "+1-555-0123",
-    status: "under_review",
-    submittedAt: new Date("2024-01-16"),
-    updatedAt: new Date("2024-01-17"),
-    referralCode: "REF-001",
-    bonusEligible: false,
-    bonusPaid: false,
-  },
-];
+// const mockReferrals: Referral[] = [
+//   {
+//     id: "1",
+//     jobId: "1",
+//     jobTitle: "Senior Software Engineer",
+//     referrerId: "1",
+//     referrerName: "John Doe",
+//     candidateName: "Jane Smith",
+//     candidateEmail: "jane.smith@email.com",
+//     candidatePhone: "+1-555-0123",
+//     status: "under_review",
+//     submittedAt: new Date("2024-01-16"),
+//     updatedAt: new Date("2024-01-17"),
+//     referralCode: "REF-001",
+//     bonusEligible: false,
+//     bonusPaid: false,
+//   },
+// ];
 
 const BonusManagement: React.FC = () => {
   const { data: bonuses = [], isLoading } = useGetBonusListQuery({});
