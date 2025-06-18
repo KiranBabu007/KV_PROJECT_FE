@@ -45,6 +45,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   user,
   onCancel,
 }) => {
+  console.log("USER:", user)
   const [formData, setFormData] = useState({
     candidateName: "",
     candidateEmail: "",
@@ -120,7 +121,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
     try {
       // Prepare the payload in the required format
       const payload = {
-        referrerId: Number(user.employeeId), // Ensure referrerId is a number if your API expects it
+        referrerId: Number(user.personId), // Ensure referrerId is a number if your API expects it
         referred: {
           person: {
             name: formData.candidateName,
