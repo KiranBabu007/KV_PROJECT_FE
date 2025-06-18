@@ -11,54 +11,80 @@ import JobList from '@/components/admin/JobList';
 import JobForm from '@/components/admin/JobForm';
 import BonusManagement from '@/components/admin/Bonus';
 import { useGetJobsListQuery, useAddJobMutation } from '@/api-service/job/job.api';
-
-const initialReferrals: Referral[] = [
-  {
-    id: '1',
-    jobId: '1',
-    jobTitle: 'Senior Software Engineer',
-    referrerId: '1',
-    referrerName: 'John Doe',
-    candidateName: 'Jane Smith',
-    candidateEmail: 'jane.smith@email.com',
-    candidatePhone: '+1-555-0123',
-    status: 'under_review',
-    submittedAt: new Date('2024-01-16'),
-    updatedAt: new Date('2024-01-17'),
-    referralCode: 'REF-001',
-    bonusEligible: false,
-    bonusPaid: false
-  }
-];
+import { useGetReferralsListQuery } from '@/api-service/referrals/referrals.api';
+import { useGetBonusListQuery } from '@/api-service/bonus/bonus.api';
 
 const initialBonuses: Bonus[] = [];
 
 const AdminDashboard: React.FC = () => {
   const [showJobForm, setShowJobForm] = useState(false);
   const [creatingJob, setCreatingJob] = useState<Job | null>(null);
-  const [referrals, setReferrals] = useState<Referral[]>(initialReferrals);
-  const [bonuses, setBonuses] = useState<Bonus[]>(initialBonuses);
 
   // Fetch jobs from API
   const { data: jobs = [], refetch } = useGetJobsListQuery({});
   const [addJobMutation] = useAddJobMutation();
 
+  // Replace the useState for referrals with the query
+  const { data: referralsData = [], isLoading: referralsLoading } = useGetReferralsListQuery();
+
+  // Map API data to your component's format
+  const referrals = referralsData.map((ref: APIReferral): Referral => ({
+    id: String(ref.id),
+    jobId: String(ref.jobPosting.id),
+    jobTitle: ref.jobPosting.title,
+    referrerId: String(ref.referrer.id),
+    referrerName: ref.referrer.name,
+    candidateName: ref.referred.name,
+    candidateEmail: ref.referred.email,
+    candidatePhone: ref.referred.phone,
+    status: ref.status.toLowerCase().replace(/ /g, '_'),
+    submittedAt: new Date(ref.createdAt),
+    updatedAt: new Date(ref.updatedAt),
+    referralCode: `REF-${ref.id.toString().padStart(3, '0')}`,
+    bonusEligible: false, // You might want to calculate this based on status
+    bonusPaid: false, // You might want to calculate this based on bonus status
+  }));
+
+  // Add bonus query
+  const { data: bonusesData = [], isLoading: bonusesLoading } = useGetBonusListQuery({});
+
+  // Map bonuses data
+  const bonuses = bonusesData.map((bonus) => ({
+    id: bonus.id,
+    amount: bonus.bonusAmount,
+    status: bonus.bonusStatus,
+    triggerDate: new Date(bonus.triggerDate),
+    referralId: bonus.referral?.id,
+    referralStatus: bonus.referral?.status,
+    createdAt: new Date(bonus.createdAt),
+    updatedAt: new Date(bonus.updatedAt)
+  }));
+
   // Add job handler
-const handleJobCreated = async (jobData: any) => {
-  try {
-    await addJobMutation(jobData).unwrap();
-    setShowJobForm(false);
-    refetch(); 
-  } catch (error) {
-    console.error("Error creating job:", error);
-  }
-};
+  const handleJobCreated = async (jobData: any) => {
+    try {
+      await addJobMutation(jobData).unwrap();
+      setShowJobForm(false);
+      refetch(); 
+    } catch (error) {
+      console.error("Error creating job:", error);
+    }
+  };
 
   // Stats
   const activeJobs = jobs.filter(job => job.status === 'active').length;
   const totalReferrals = referrals.length;
-  const pendingReferrals = referrals.filter(r => r.status === 'submitted' || r.status === 'under_review').length;
-  const eligibleBonuses = bonuses.filter(b => b.status === 'eligible').length;
+  const pendingReferrals = referrals.filter(r => 
+    r.status.includes('submitted') || r.status.includes('review')
+  ).length;
+  const totalBonusAmount = bonuses.reduce((sum, bonus) => 
+    bonus.status === 'SETTLED' ? sum + bonus.amount : sum, 0
+  );
+  const pendingBonusAmount = bonuses.reduce((sum, bonus) => 
+    bonus.status === 'PENDING' ? sum + bonus.amount : sum, 0
+  );
+  const eligibleBonuses = bonuses.filter(b => b.status === 'PENDING').length;
+  const paidBonuses = bonuses.filter(b => b.status === 'SETTLED').length;
 
   const stats = [
     {
@@ -86,13 +112,14 @@ const handleJobCreated = async (jobData: any) => {
       trend: '-3%'
     },
     {
-      title: 'Eligible Bonuses',
-      value: eligibleBonuses,
+      title: 'Total Bonus Paid',
+      value: `₹${totalBonusAmount.toLocaleString()}`,
       icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      trend: '+15%'
-    }
+      color: 'text-green-600',
+      bgColor: 'bg-gradient-to-br from-green-50 to-green-100',
+      trend: `${paidBonuses} bonuses`
+    },
+
   ];
 
   // Open JobForm for create
@@ -230,13 +257,20 @@ const handleJobCreated = async (jobData: any) => {
 
           <TabsContent value="referrals" className="animate-fade-in">
             <div className="animate-slide-in-right">
-              <ReferralManagement />
+              <ReferralManagement 
+                referrals={referrals}
+                isLoading={referralsLoading}
+              />
             </div>
           </TabsContent>
 
           <TabsContent value="bonuses" className="animate-fade-in">
             <div className="animate-slide-in-right">
-              <BonusManagement />
+              <BonusManagement 
+                bonuses={bonuses}
+                isLoading={bonusesLoading}
+                referrals={referrals}
+              />
             </div>
           </TabsContent>
         </Tabs>
