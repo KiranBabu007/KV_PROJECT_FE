@@ -28,12 +28,13 @@ import {
   useGetReferralsListQuery,
   useUpdateReferralStatusMutation,
 } from "@/api-service/referrals/referrals.api";
-import { useGetResumeQuery } from "@/api-service/resume/resume.api";
+import { resumeApi, useGetResumeMutation } from "@/api-service/resume/resume.api";
+import { useDispatch } from "react-redux";
 
 const ReferralManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
-
+  const dispatch = useDispatch(); 
   const { data: referralsData = [], isLoading } = useGetReferralsListQuery(
     undefined,
     {
@@ -44,7 +45,7 @@ const ReferralManagement: React.FC = () => {
     }
   );
   const [updateStatus] = useUpdateReferralStatusMutation();
-
+  const [downloadResume]=useGetResumeMutation()
   const referrals = useMemo(
     () =>
       (referralsData || [])
@@ -77,36 +78,13 @@ const ReferralManagement: React.FC = () => {
     [referralsData]
   );
 
-  const { data: resumeData } = useGetResumeQuery(selectedReferral ? (referrals.find(r => r.id === selectedReferral)?.resumeId || "") : "", {
-    skip: !selectedReferral || !referrals.find(r => r.id === selectedReferral)?.resumeId,
-  });
+  // const { data: resumeData } = useGetResumeQuery(selectedReferral ? (referrals.find(r => r.id === selectedReferral)?.resumeId || "") : "", {
+  //   skip: !selectedReferral || !referrals.find(r => r.id === selectedReferral)?.resumeId,
+  // });
 
 
-  const handleDownloadResume = useCallback(async (resumeId: number | null, candidateName: string) => {
-    if (resumeId) {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/resume/${resumeId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${candidateName}_Resume.pdf`; // You might want to get the actual filename from headers or API
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Failed to download resume:", error);
-        // Optionally, show a toast or error message to the user
-      }
-    } else {
-      console.warn("No resume ID available for download.");
-    }
-  }, []);
 
+    
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
     try {
@@ -356,7 +334,7 @@ const ReferralManagement: React.FC = () => {
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card selection when button is clicked
-                                  handleDownloadResume(referral.resumeId, referral.candidateName);
+                                  downloadResume(Number(referral.resumeId));
                                 }}
                               >
                                 Download Resume

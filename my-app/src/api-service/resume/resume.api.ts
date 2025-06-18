@@ -3,12 +3,14 @@ import type { ResumePayload, ResumeResponse } from "./types";
 
 export const resumeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getResume: builder.query<ResumeResponse, string>({
+    getResume: builder.mutation<ResumeResponse,number>({
       query: (id) => ({
+        
         url: `/resume/${id}`,
         method: "GET",
+        responseHandler: async (response) => window.open(window.URL.createObjectURL(await response.blob()),'_blank'),
       }),
-      providesTags: ["RESUME"],
+      
     }),
 
     sendResume: builder.mutation<{ id: string }, FormData>({
@@ -22,4 +24,4 @@ export const resumeApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetResumeQuery, useSendResumeMutation } = resumeApi;
+export const { useGetResumeMutation, useSendResumeMutation } = resumeApi;
