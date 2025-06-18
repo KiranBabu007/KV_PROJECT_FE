@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   useUpdateReferralStatusMutation,
   useConvertCandidateToEmployeeMutation
 } from '@/api-service/referrals/referrals.api';
+import { useGetResumeQuery } from '@/api-service/resume/resume.api';
 
 
 const ReferralManagement: React.FC = () => {
