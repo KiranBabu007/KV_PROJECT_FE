@@ -13,29 +13,29 @@ import {
 import { useCreateReferralMutation } from "@/api-service/referrals/referrals.api"; // Import the mutation hook
 
 // Local mock data (Keeping this for context, but it won't be used for the actual API call)
-const mockReferrals: Referral[] = [
-  {
-    id: "1",
-    jobId: "1",
-    jobTitle: "Senior Software Engineer",
-    referrerId: "1",
-    referrerName: "John Doe",
-    candidateName: "Jane Smith",
-    candidateEmail: "jane.smith@email.com",
-    candidatePhone: "+1-555-0123",
-    status: "under_review",
-    submittedAt: new Date("2024-01-16"),
-    updatedAt: new Date("2024-01-17"),
-    referralCode: "REF-001",
-    bonusEligible: false,
-    bonusPaid: false,
-    // trackingToken: 'sample-token-123'
-  },
-];
+// const mockReferrals: Referral[] = [
+//   {
+//     id: "1",
+//     jobId: "1",
+//     jobTitle: "Senior Software Engineer",
+//     referrerId: "1",
+//     referrerName: "John Doe",
+//     candidateName: "Jane Smith",
+//     candidateEmail: "jane.smith@email.com",
+//     candidatePhone: "+1-555-0123",
+//     status: "under_review",
+//     submittedAt: new Date("2024-01-16"),
+//     updatedAt: new Date("2024-01-17"),
+//     referralCode: "REF-001",
+//     bonusEligible: false,
+//     bonusPaid: false,
+//     // trackingToken: 'sample-token-123'
+//   },
+// ];
 
 interface ReferralFormProps {
   jobId: string;
-  jobs: any[]; // Consider defining a more specific type for Job if available
+  jobs: any[]; 
   user: User;
   onCancel?: () => void;
 }
@@ -46,25 +46,17 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   user,
   onCancel,
 }) => {
-  // `referrals` state is currently using mock data and not updated by the API call.
-  // If you need to display or manage a list of referrals that reflects API submissions,
-  // you'll want to fetch them using `useGetReferralsListQuery` or similar.
-  const [referrals, setReferrals] = useState<Referral[]>(mockReferrals);
-
   const [formData, setFormData] = useState({
     candidateName: "",
     candidateEmail: "",
     candidatePhone: "",
     experience: 0,
-    // `resume` field in formData seems redundant if `resumeId` is separate.
-    // It's currently initialized to 0, which doesn't align with `File` type.
-    // Consider removing `resume: 0` from here if `resumeFile` and `resumeId` handle the resume state.
     resume: 0,
     notes: "",
   });
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeId, setResumeId] = useState<number | null>(null);
+  const [resumeId, setResumeId] = useState<string | null>(null);
   const [sendResume] = useSendResumeMutation();
   const [createReferral] = useCreateReferralMutation(); // Initialize the mutation hook
 
@@ -77,48 +69,6 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   const job = jobs.find((j) => j.id === jobId);
 
   if (!job || !user) return null;
-
-  // Check if user has already referred someone for this job within 6 months
-  // This logic currently uses mockReferrals. If you want it to reflect actual
-  // referrals, you'd need to fetch user-specific referrals from your API.
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const hasRecentReferral = referrals.some(
-    (r) =>
-      r.jobId === jobId &&
-      r.referrerId === user.id &&
-      r.submittedAt > sixMonthsAgo
-  );
-
-  const generateUniqueToken = () => {
-    return Math.random().toString(36).substr(2, 16) + Date.now().toString(36);
-  };
-
-  // The `addReferral` function is for updating local mock data.
-  // After integrating the API call, you might not need this function or
-  // you'd use it to update a local cache if you're not refetching all referrals.
-  const addReferral = (
-    referralData: Omit<
-      Referral,
-      "id" | "submittedAt" | "updatedAt" | "referralCode" | "trackingToken"
-    >
-  ) => {
-    const trackingToken = generateUniqueToken();
-    const newReferral: Referral = {
-      ...referralData,
-      id: Math.random().toString(36).substr(2, 9),
-      submittedAt: new Date(),
-      updatedAt: new Date(),
-      referralCode: `REF-${Math.random()
-        .toString(36)
-        .substr(2, 6)
-        .toUpperCase()}`,
-      trackingToken,
-    };
-    setReferrals((prev) => [...prev, newReferral]);
-    return trackingToken;
-  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -181,16 +131,13 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           yearsOfExperience: Number(formData.experience),
         },
         jobPostingId: Number(job.id), // Ensure jobPostingId is a number
-        resumeId: resumeId,
+        resumeId: Number(resumeId),
       };
 
       // Call the createReferral mutation
       const result = await createReferral(payload).unwrap();
 
-      // Assuming the API returns the created referral with a trackingToken or ID
-      // If your API returns a trackingToken, use it directly.
-      // If not, you might need to generate it client-side if it's purely for client display.
-      const trackingToken = result?.id; // Adjust based on your API response
+      const trackingToken = result?.id;
 
       // Generate tracking link
       const link = `${window.location.origin}/candidate/${trackingToken}`;
@@ -207,32 +154,15 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
         notes: "",
       });
       setResumeFile(null); // Clear the uploaded resume file
-      setResumeId(null); // Clear the resume ID
-    } catch (error) {
-      console.error("Failed to submit referral:", error);
-      setErrorMessage("Failed to submit referral. Please try again.");
+    } catch (error: any) {
+      // Show backend error if available
+      setErrorMessage(
+        error?.data?.message || "Failed to submit referral. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  if (hasRecentReferral) {
-    return (
-      <div className="text-center py-8">
-        <X className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Cannot Submit Referral
-        </h3>
-        <p className="text-gray-600 mb-6">
-          You have already referred someone for this position within the last 6
-          months.
-        </p>
-        <Button variant="outline" onClick={onCancel}>
-          Back to Jobs
-        </Button>
-      </div>
-    );
-  }
 
   if (trackingLink) {
     return (

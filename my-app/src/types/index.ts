@@ -55,5 +55,3 @@ export interface Bonus {
   triggerDate: string;
   referral: Referral;
 }
-
-

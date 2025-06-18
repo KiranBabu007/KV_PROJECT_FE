@@ -18,30 +18,40 @@ const ReferralManagement: React.FC = () => {
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
   
   // Replace api.referrals with RTK Query hooks
-  const { data: referralsData = [], isLoading } = useGetReferralsListQuery();
+  const { data: referralsData = [], isLoading } = useGetReferralsListQuery(undefined, {
+  selectFromResult: ({ data, ...rest }) => ({
+    data: data ?? [], // Ensure data is never undefined
+    ...rest
+  })
+});
   const [updateStatus] = useUpdateReferralStatusMutation();
 
   // Map API data to component format
   const referrals = useMemo(() => 
-    referralsData.map((ref): Referral => ({
-      id: String(ref.id),
-      jobId: String(ref.jobPosting.id),
-      jobTitle: ref.jobPosting.title,
-      referrerId: String(ref.referrer.id),
-      referrerName: ref.referrer.name,
-      candidateName: ref.referred.name,
-      candidateEmail: ref.referred.email,
-      candidatePhone: ref.referred.phone,
-      status: ref.status.toLowerCase().replace(/ /g, '_'),
-      submittedAt: new Date(ref.createdAt),
-      updatedAt: new Date(ref.updatedAt),
-      referralCode: `REF-${ref.id.toString().padStart(3, '0')}`,
-      bonusEligible: ref.currentRound >= 1,
-      bonusPaid: false,  // You might want to check this from bonus data
-      yearsOfExperience: ref.referred.candidate?.yearsOfExperience || 0,
-      skills: ref.jobPosting.skills,
-      location: ref.jobPosting.location,
-    })), [referralsData]
+    (referralsData || [])
+      .filter((ref): ref is NonNullable<typeof ref> => ref !== null) // Filter out null values
+      .map((ref): Referral => ({
+        id: String(ref.id),
+        jobId: String(ref.jobPosting?.id || ''),
+        jobTitle: ref.jobPosting?.title || '',
+        referrerId: String(ref.referrer?.id || ''),
+        referrerName: ref.referrer?.name || '',
+        candidateName: ref.referred?.name || '',
+        candidateEmail: ref.referred?.email || '',
+        candidatePhone: ref.referred?.phone || '',
+        status: ref.status || 'Referral Submitted',
+        submittedAt: new Date(ref.createdAt || Date.now()),
+        updatedAt: new Date(ref.updatedAt || Date.now()),
+        referralCode: `REF-${String(ref.id).padStart(3, '0')}`,
+        bonusEligible: Boolean(ref.currentRound >= 1),
+        bonusPaid: false,
+        yearsOfExperience: ref.referred?.candidate?.yearsOfExperience || 0,
+        skills: ref.jobPosting?.skills || '',
+        location: ref.jobPosting?.location || '',
+        jobDescription: ref.jobPosting?.description || '',
+        bonusAmount: ref.jobPosting?.bonusForReferral || 0,
+        resumeUrl: ref.resume?.url || null,
+      })), [referralsData]
   );
 
   // Update the status update handler to use API
