@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,9 +15,11 @@ import {
   useConvertCandidateToEmployeeMutation
 } from '@/api-service/referrals/referrals.api';
 
+
 const ReferralManagement: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
+
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [joiningDate, setJoiningDate] = useState<string>('');
   const [isConverting, setIsConverting] = useState(false);
@@ -28,8 +31,10 @@ const ReferralManagement: React.FC = () => {
     ...rest
   })
 });
+
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
+
 
   // Map API data to component format
   const referrals = useMemo(() => 
@@ -57,18 +62,51 @@ const ReferralManagement: React.FC = () => {
         bonusAmount: ref.jobPosting?.bonusForReferral || 0,
         resumeUrl: ref.resume?.url || null,
       })), [referralsData]
+
   );
 
-  // Update the status update handler to use API
+  const { data: resumeData } = useGetResumeQuery(selectedReferral ? (referrals.find(r => r.id === selectedReferral)?.resumeId || "") : "", {
+    skip: !selectedReferral || !referrals.find(r => r.id === selectedReferral)?.resumeId,
+  });
+
+
+  const handleDownloadResume = useCallback(async (resumeId: number | null, candidateName: string) => {
+    if (resumeId) {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/resume/${resumeId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${candidateName}_Resume.pdf`; // You might want to get the actual filename from headers or API
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download resume:", error);
+        // Optionally, show a toast or error message to the user
+      }
+    } else {
+      console.warn("No resume ID available for download.");
+    }
+  }, []);
+
+
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
     try {
       await updateStatus({
         id: parseInt(referralId),
         status: newStatus
+
+
       }).unwrap();
       setPendingStatus(null); // Reset pending status after successful update
     } catch (error) {
-      console.error('Failed to update status:', error);
+      console.error("Failed to update status:", error);
     }
   };
 
@@ -77,6 +115,7 @@ const ReferralManagement: React.FC = () => {
     if (!joiningDate) {
       console.error('Joining date is required');
       return;
+
     }
     
     try {
@@ -97,6 +136,7 @@ const ReferralManagement: React.FC = () => {
         timestamp: new Date().toISOString()
       });
 
+
     } catch (error) {
       console.error('Conversion failed ❌', {
         referralId,
@@ -113,6 +153,7 @@ const ReferralManagement: React.FC = () => {
         referralId,
         timestamp: new Date().toISOString()
       });
+
     }
   };
 
@@ -166,27 +207,35 @@ const getStatusIcon = (status: string) => {
 
   const searchReferrals = (query: string): Referral[] => {
     const lowercaseQuery = query.toLowerCase();
-    return referrals.filter(referral =>
-      referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
-      referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
-      referral.candidateName.toLowerCase().includes(lowercaseQuery)
+    return referrals.filter(
+      (referral) =>
+        referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
+        referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
+        referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
   };
 
-  const updateReferral = (id: string, updates: Partial<Referral>) => {
-    setReferrals(prev => prev.map(referral => 
-      referral.id === id ? { ...referral, ...updates, updatedAt: new Date() } : referral
-    ));
-  };
+  // Removed setReferrals as referrals are now derived from RTK Query data
+  // const updateReferral = (id: string, updates: Partial<Referral>) => {
+  //   setReferrals((prev) =>
+  //     prev.map((referral) =>
+  //       referral.id === id
+  //         ? { ...referral, ...updates, updatedAt: new Date() }
+  //         : referral
+  //     )
+  //   );
+  // };
 
-  const displayReferrals = searchQuery ? searchReferrals(searchQuery) : referrals;
+  const displayReferrals = searchQuery
+    ? searchReferrals(searchQuery)
+    : referrals;
 
   const getStatsCards = () => {
     const stats = {
       total: referrals.length,
-      submitted: referrals.filter(r => r.status === 'submitted').length,
-      under_review: referrals.filter(r => r.status === 'under_review').length,
-      accepted: referrals.filter(r => r.status === 'accepted').length,
+      submitted: referrals.filter((r) => r.status === "submitted").length,
+      under_review: referrals.filter((r) => r.status === "under_review").length,
+      accepted: referrals.filter((r) => r.status === "accepted").length,
     };
     return stats;
   };
@@ -208,7 +257,9 @@ const getStatusIcon = (status: string) => {
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
                   Referral Management
                 </h2>
-                <p className="text-gray-600 mt-1">Manage and track employee referrals</p>
+                <p className="text-gray-600 mt-1">
+                  Manage and track employee referrals
+                </p>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="relative">
@@ -229,8 +280,12 @@ const getStatusIcon = (status: string) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-600 text-sm font-medium">Total Referrals</p>
-                      <p className="text-3xl font-bold text-blue-800">{stats.total}</p>
+                      <p className="text-blue-600 text-sm font-medium">
+                        Total Referrals
+                      </p>
+                      <p className="text-3xl font-bold text-blue-800">
+                        {stats.total}
+                      </p>
                     </div>
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
@@ -241,8 +296,12 @@ const getStatusIcon = (status: string) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-yellow-600 text-sm font-medium">Under Review</p>
-                      <p className="text-3xl font-bold text-yellow-800">{stats.under_review}</p>
+                      <p className="text-yellow-600 text-sm font-medium">
+                        Under Review
+                      </p>
+                      <p className="text-3xl font-bold text-yellow-800">
+                        {stats.under_review}
+                      </p>
                     </div>
                     <Search className="h-8 w-8 text-yellow-600" />
                   </div>
@@ -253,8 +312,12 @@ const getStatusIcon = (status: string) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-600 text-sm font-medium">New Submissions</p>
-                      <p className="text-3xl font-bold text-purple-800">{stats.submitted}</p>
+                      <p className="text-purple-600 text-sm font-medium">
+                        New Submissions
+                      </p>
+                      <p className="text-3xl font-bold text-purple-800">
+                        {stats.submitted}
+                      </p>
                     </div>
                     <Clock className="h-8 w-8 text-purple-600" />
                   </div>
@@ -265,8 +328,12 @@ const getStatusIcon = (status: string) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-green-600 text-sm font-medium">Accepted</p>
-                      <p className="text-3xl font-bold text-green-800">{stats.accepted}</p>
+                      <p className="text-green-600 text-sm font-medium">
+                        Accepted
+                      </p>
+                      <p className="text-3xl font-bold text-green-800">
+                        {stats.accepted}
+                      </p>
                     </div>
                     <Award className="h-8 w-8 text-green-600" />
                   </div>
@@ -283,19 +350,24 @@ const getStatusIcon = (status: string) => {
                   <CardContent className="p-12 text-center">
                     <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 text-lg mb-2">
-                      {searchQuery ? 'No referrals found matching your search.' : 'No referrals yet.'}
+                      {searchQuery
+                        ? "No referrals found matching your search."
+                        : "No referrals yet."}
                     </p>
                     <p className="text-gray-400 text-sm">
-                      Referrals will appear here once employees start submitting candidates.
+                      Referrals will appear here once employees start submitting
+                      candidates.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
                 displayReferrals.map((referral) => (
-                  <Card 
-                    key={referral.id} 
+                  <Card
+                    key={referral.id}
                     className={`cursor-pointer transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm ${
-                      selectedReferral === referral.id ? 'ring-2 ring-blue-500 shadow-xl scale-[1.02]' : 'hover:scale-[1.01]'
+                      selectedReferral === referral.id
+                        ? "ring-2 ring-blue-500 shadow-xl scale-[1.02]"
+                        : "hover:scale-[1.01]"
                     }`}
                     onClick={() => setSelectedReferral(referral.id)}
                   >
@@ -305,19 +377,43 @@ const getStatusIcon = (status: string) => {
                           <CardTitle className="text-xl bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
                             {referral.candidateName}
                           </CardTitle>
-                          <p className="text-gray-700 font-medium">{referral.jobTitle}</p>
+                          <p className="text-gray-700 font-medium">
+                            {referral.jobTitle}
+                          </p>
+
                           <p className="text-sm text-gray-500 flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            Referred by {referral.referrerName} • Code: 
+                            Referred by {referral.referrerName} • Code:
                             <span className="font-mono ml-1 bg-gray-100 px-2 py-1 rounded text-xs">
                               {referral.referralCode}
                             </span>
                           </p>
                         </div>
-                        <Badge className={`${getStatusColor(referral.status)} border px-3 py-1 flex items-center gap-1`}>
-                          {getStatusIcon(referral.status)}
-                          {referral.status.replace('_', ' ')}
-                        </Badge>
+
+                        <div className="flex flex-col items-end">
+                          <Badge
+                            className={`${getStatusColor(
+                              referral.status
+                            )} border px-3 py-1 flex items-center gap-1`}
+                          >
+                            {getStatusIcon(referral.status)}
+                            {referral.status.replace("_", " ")}
+                          </Badge>
+                          <div className="mt-2 ">
+                            {/* Download Resume Button */}
+                            {referral.resumeId && (
+                              <Button
+                                className="bg-blue-500 hover:bg-blue-600 text-white"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent card selection when button is clicked
+                                  handleDownloadResume(referral.resumeId, referral.candidateName);
+                                }}
+                              >
+                                Download Resume
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -334,7 +430,7 @@ const getStatusIcon = (status: string) => {
                         </div>
                         <span className="flex items-center bg-white px-2 py-1 rounded">
                           <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-                          {format(referral.submittedAt, 'MMM d, yyyy')}
+                          {format(referral.submittedAt, "MMM d, yyyy")}
                         </span>
                       </div>
                     </CardContent>
@@ -347,7 +443,9 @@ const getStatusIcon = (status: string) => {
             <div className="space-y-6">
               {selectedReferral ? (
                 (() => {
-                  const referral = referrals.find(r => r.id === selectedReferral);
+                  const referral = referrals.find(
+                    (r) => r.id === selectedReferral
+                  );
                   if (!referral) return null;
 
                   return (
@@ -363,7 +461,9 @@ const getStatusIcon = (status: string) => {
                               <CardTitle className="text-xl text-white font-bold">
                                 {referral.candidateName}
                               </CardTitle>
-                              <p className="text-blue-100 font-medium">{referral.jobTitle}</p>
+                              <p className="text-blue-100 font-medium">
+                                {referral.jobTitle}
+                              </p>
                               <p className="text-blue-200 text-sm flex items-center mt-1">
                                 <span className="font-mono bg-white/20 px-2 py-1 rounded text-xs mr-2">
                                   {referral.referralCode}
@@ -374,17 +474,24 @@ const getStatusIcon = (status: string) => {
                           </div>
                         </div>
                       </CardHeader>
-                      
+
                       <CardContent className="p-6 space-y-6">
                         {/* Status Update Section */}
+
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-gray-800 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-blue-600" />
                               Status Management
                             </label>
-                            <Badge className={`${getStatusColor(referral.status)} border px-3 py-1.5 flex items-center gap-1 font-medium`}>
+
+                            <Badge
+                              className={`${getStatusColor(
+                                referral.status
+                              )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
+                            >
                               {getStatusIcon(referral.status)}
+
                               {referral.status}
                             </Badge>
                           </div>
@@ -507,6 +614,7 @@ const getStatusIcon = (status: string) => {
                               </Button>
                             </div>
                           )}
+
                         </div>
 
                         {/* Information Cards Grid */}
@@ -517,26 +625,36 @@ const getStatusIcon = (status: string) => {
                               <div className="p-2 bg-blue-500 rounded-lg mr-3">
                                 <User className="h-4 w-4 text-white" />
                               </div>
-                              <h3 className="font-bold text-gray-800">Candidate Details</h3>
+                              <h3 className="font-bold text-gray-800">
+                                Candidate Details
+                              </h3>
                             </div>
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Name</span>
-                                <span className="font-semibold text-gray-800">{referral.candidateName}</span>
+                                <span className="text-gray-600 font-medium">
+                                  Name
+                                </span>
+                                <span className="font-semibold text-gray-800">
+                                  {referral.candidateName}
+                                </span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
                                 <span className="text-gray-600 font-medium flex items-center">
                                   <Mail className="h-3 w-3 mr-1" />
                                   Email
                                 </span>
-                                <span className="font-semibold text-blue-600">{referral.candidateEmail}</span>
+                                <span className="font-semibold text-blue-600">
+                                  {referral.candidateEmail}
+                                </span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
                                 <span className="text-gray-600 font-medium flex items-center">
                                   <Phone className="h-3 w-3 mr-1" />
                                   Phone
                                 </span>
-                                <span className="font-semibold text-gray-800">{referral.candidatePhone}</span>
+                                <span className="font-semibold text-gray-800">
+                                  {referral.candidatePhone}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -547,19 +665,31 @@ const getStatusIcon = (status: string) => {
                               <div className="p-2 bg-purple-500 rounded-lg mr-3">
                                 <Users className="h-4 w-4 text-white" />
                               </div>
-                              <h3 className="font-bold text-gray-800">Position & Referrer</h3>
+                              <h3 className="font-bold text-gray-800">
+                                Position & Referrer
+                              </h3>
                             </div>
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Position</span>
-                                <span className="font-semibold text-gray-800">{referral.jobTitle}</span>
+                                <span className="text-gray-600 font-medium">
+                                  Position
+                                </span>
+                                <span className="font-semibold text-gray-800">
+                                  {referral.jobTitle}
+                                </span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Referrer</span>
-                                <span className="font-semibold text-purple-600">{referral.referrerName}</span>
+                                <span className="text-gray-600 font-medium">
+                                  Referrer
+                                </span>
+                                <span className="font-semibold text-purple-600">
+                                  {referral.referrerName}
+                                </span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Code</span>
+                                <span className="text-gray-600 font-medium">
+                                  Code
+                                </span>
                                 <span className="font-mono bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
                                   {referral.referralCode}
                                 </span>
@@ -573,19 +703,25 @@ const getStatusIcon = (status: string) => {
                               <div className="p-2 bg-green-500 rounded-lg mr-3">
                                 <Calendar className="h-4 w-4 text-white" />
                               </div>
-                              <h3 className="font-bold text-gray-800">Timeline</h3>
+                              <h3 className="font-bold text-gray-800">
+                                Timeline
+                              </h3>
                             </div>
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Submitted</span>
+                                <span className="text-gray-600 font-medium">
+                                  Submitted
+                                </span>
                                 <span className="font-semibold text-green-600">
-                                  {format(referral.submittedAt, 'PPP')}
+                                  {format(referral.submittedAt, "PPP")}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
-                                <span className="text-gray-600 font-medium">Last Updated</span>
+                                <span className="text-gray-600 font-medium">
+                                  Last Updated
+                                </span>
                                 <span className="font-semibold text-gray-800">
-                                  {format(referral.updatedAt, 'PPP')}
+                                  {format(referral.updatedAt, "PPP")}
                                 </span>
                               </div>
                             </div>
@@ -593,11 +729,12 @@ const getStatusIcon = (status: string) => {
                         </div>
 
                         {/* Action Buttons */}
-                        {referral.resumeUrl && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                        {referral.resumeId && (
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 font-medium"
+                            onClick={() => handleDownloadResume(referral.resumeId, referral.candidateName)}
                           >
                             <FileText className="h-4 w-4 mr-2 text-blue-600" />
                             View Resume
@@ -613,11 +750,18 @@ const getStatusIcon = (status: string) => {
                           <Textarea
                             placeholder="Add internal notes about this referral (candidate assessment, interview feedback, etc.)..."
                             className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 min-h-[120px] transition-all duration-200 resize-none"
-                            value={referral.notes || ''}
-                            onChange={(e) => updateReferral(referral.id, { notes: e.target.value })}
+                            value={referral.notes || ""}
+                            // You might need a separate mutation or local state for notes if they are not part of the status update
+                            // For now, removing the onChange as it attempts to update a non-existent local state
+                            // onChange={(e) =>
+                            //   updateReferral(referral.id, {
+                            //     notes: e.target.value,
+                            //   })
+                            // }
                           />
                           <p className="text-xs text-gray-500">
-                            These notes are for internal use only and will not be visible to the referrer or candidate.
+                            These notes are for internal use only and will not
+                            be visible to the referrer or candidate.
                           </p>
                         </div>
                       </CardContent>
@@ -630,9 +774,12 @@ const getStatusIcon = (status: string) => {
                     <div className="animate-bounce mb-4">
                       <Search className="h-16 w-16 text-gray-400 mx-auto" />
                     </div>
-                    <p className="text-gray-600 text-lg font-medium mb-2">Select a referral to manage</p>
+                    <p className="text-gray-600 text-lg font-medium mb-2">
+                      Select a referral to manage
+                    </p>
                     <p className="text-gray-500 text-sm">
-                      Click on any referral from the list to view and update its details.
+                      Click on any referral from the list to view and update its
+                      details.
                     </p>
                   </CardContent>
                 </Card>
