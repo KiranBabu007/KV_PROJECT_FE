@@ -19,6 +19,7 @@ import ReferralTimeline from "@/components/candidate/ReferralTimeline";
 import ReferralDetails from "@/components/candidate/ReferralDetails";
 import type { ReferralsResponse } from "@/api-service/candidate/types";
 import ReferralLoadingSkeleton from "@/components/candidate/ReferralLoadingSkeleton";
+import NotFound from "@/components/candidate/NotFound";
 
 // Referral Data (Static)
 // const referralData = {
@@ -254,7 +255,7 @@ export default function Index() {
     ? buildReferralData(data)
     : null;
   if (!referralData) {
-    return <div>Referral Data not found or an error occurred.</div>;
+    return <NotFound />;
   }
 
   const fakeDates = data
