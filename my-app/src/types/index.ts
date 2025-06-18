@@ -114,6 +114,6 @@ export interface APIReferral {
     };
   };
   resume: {
-    url: string;
+    id:number;
   } | null;
 }

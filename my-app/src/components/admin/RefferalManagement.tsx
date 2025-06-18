@@ -14,9 +14,7 @@ import {
   useUpdateReferralStatusMutation,
   useConvertCandidateToEmployeeMutation
 } from '@/api-service/referrals/referrals.api';
-import { resumeApi, useGetResumeMutation } from "@/api-service/resume/resume.api";
-import { useDispatch } from "react-redux";
-
+import { useGetResumeMutation,useSendResumeMutation } from '@/api-service/resume/resume.api';
 
 
 
@@ -39,8 +37,7 @@ const ReferralManagement: React.FC = () => {
 
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
-
-
+  const [downloadResume]=useGetResumeMutation();
   // Map API data to component format
   const referrals = useMemo(() => 
     (referralsData || [])
@@ -65,15 +62,12 @@ const ReferralManagement: React.FC = () => {
         location: ref.jobPosting?.location || '',
         jobDescription: ref.jobPosting?.description || '',
         bonusAmount: ref.jobPosting?.bonusForReferral || 0,
-        resumeUrl: ref.resume?.url || null,
+        resumeId: ref.resume?.id || null,
       })), [referralsData]
 
 
   );
 
-  // const { data: resumeData } = useGetResumeQuery(selectedReferral ? (referrals.find(r => r.id === selectedReferral)?.resumeId || "") : "", {
-  //   skip: !selectedReferral || !referrals.find(r => r.id === selectedReferral)?.resumeId,
-  // });
 
 
 
@@ -192,7 +186,7 @@ const getStatusIcon = (status: string) => {
     const lowercaseQuery = query.toLowerCase();
     return referrals.filter(
       (referral) =>
-        referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
+        referral.referred.email.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
@@ -224,7 +218,7 @@ const getStatusIcon = (status: string) => {
   };
 
   const stats = getStatsCards();
-
+  console.log(referrals);
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -389,7 +383,8 @@ const getStatusIcon = (status: string) => {
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card selection when button is clicked
-                                  downloadResume(Number(referral.resumeId));
+                                  downloadResume(referral.resumeId)
+
                                 }}
                               >
                                 Download Resume

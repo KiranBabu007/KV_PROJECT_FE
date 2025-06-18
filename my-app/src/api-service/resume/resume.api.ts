@@ -24,4 +24,6 @@ export const resumeApi = baseApi.injectEndpoints({
   }),
 });
 
+
 export const { useGetResumeMutation, useSendResumeMutation } = resumeApi;
+

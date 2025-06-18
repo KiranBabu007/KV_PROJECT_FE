@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Briefcase, Users, TrendingUp, AlertCircle, BarChart3, Sparkles } from 'lucide-react';
 
-import type { Job, Referral, Bonus } from '@/types';
+import type { Job, Referral, Bonus, APIReferral } from '@/types';
 import ReferralManagement from '@/components/admin/RefferalManagement';
 import JobList from '@/components/admin/JobList';
 import JobForm from '@/components/admin/JobForm';
