@@ -1,10 +1,10 @@
 export interface User {
-  id: string ;
+  id: string;
   name: string;
   email: string;
   role: string;
   avatar?: string;
-} 
+}
 
 export interface Job {
   id: number;
@@ -22,27 +22,56 @@ export interface Job {
   bonusForReferral: number;
 }
 
-
 export interface Notification {
   id: string;
   userId: string;
   title: string;
   message: string;
-  type: 'referral' | 'bonus' | 'interview' | 'status_update' | 'job_update';
+  type: "referral" | "bonus" | "interview" | "status_update" | "job_update";
   read: boolean;
   createdAt: Date;
   relatedId?: string;
 }
 
-
-
-export interface Referral {
+export interface APIReferral {
   id: number;
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
-  currentRound: number;
   status: string;
+  jobPosting: {
+    id: number;
+    title: string;
+    bonusForReferral: boolean;
+  };
+  referrer: {
+    id: number;
+    name: string;
+  };
+  referred: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
+
+export interface Referral {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  referrerId: string;
+  referrerName: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  status: string;
+  submittedAt: string;
+  updatedAt: string;
+  referralCode: string;
+  bonusEligible: boolean;
+  bonusPaid: boolean;
+  trackingToken: string;
+  createdAt: string;
+  deletedAt: string | null;
 }
 
 export interface Bonus {

@@ -68,8 +68,6 @@ function App() {
     localStorage.setItem("user", JSON.stringify(mockUser));
   };
 
-
-
   const markNotificationRead = (id: string) => {
     setNotifications((prev) =>
       prev.map((notification) =>
@@ -101,7 +99,6 @@ function App() {
       element: (
         <Layout
           user={user}
-         
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -114,8 +111,6 @@ function App() {
       element: (
         <Layout
           user={user}
-          
-          
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -128,8 +123,6 @@ function App() {
       element: (
         <Layout
           user={user}
-
-          
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -142,7 +135,7 @@ function App() {
   return (
     <>
       <Provider store={store}>
-        <RouterProvider router={router} />;
+        <RouterProvider router={router} />
       </Provider>
     </>
   );

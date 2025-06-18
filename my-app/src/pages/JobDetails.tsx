@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
   Users,
@@ -52,7 +53,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
     isError,
     error,
   } = useGetJobQuery({ id: jobId });
-  console.log("🚀 ~ job:", job);
 
   // Loading state
   if (isLoading) {
@@ -495,6 +495,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
               </DialogHeader>
               <ReferralForm
                 jobId={jobId!}
+                jobs={[job]} // Pass the fetched job as an array
                 user={user}
                 onCancel={() => setIsReferralFormOpen(false)}
               />

@@ -275,21 +275,27 @@ const BonusManagement: React.FC = () => {
                           <div className="p-1.5 bg-blue-100 rounded-lg">
                             <User className="h-4 w-4 text-blue-600" />
                           </div>
-                          <span className="font-medium">{bonus.referral?.referrer?.name || 'Unknown Referrer'}</span>
+                          <span className="font-medium">
+                            {bonus.referral?.referrer?.name ||
+                              "Unknown Referrer"}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span>referred</span>
                           <span className="font-medium text-gray-900">
-                            {bonus.referral?.referred?.name || 'Unknown Candidate'}
+                            {bonus.referral?.referred?.name ||
+                              "Unknown Candidate"}
                           </span>
                         </div>
                         <div className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium">
-                          Referral Status: {bonus.referral?.status || 'Unknown'}
+                          Referral Status: {bonus.referral?.status || "Unknown"}
                         </div>
                       </div>
                     </div>
                     <Badge
-                      className={`${getStatusColor(bonus.bonusStatus)} font-medium px-3 py-1`}
+                      className={`${getStatusColor(
+                        bonus.bonusStatus
+                      )} font-medium px-3 py-1`}
                     >
                       {formatStatus(bonus.bonusStatus)}
                     </Badge>
