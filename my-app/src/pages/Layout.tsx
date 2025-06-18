@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -13,40 +13,55 @@ import {
 import {jwtDecode} from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 
-import type { User, Notification } from '@/types';
+import type { User, Notification, JWTUser } from '@/types';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import logo from "@/assets/logo.jpg"
+import { useGetPersonNotificationsQuery } from '@/api-service/notifications/notifications.api';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: User | null;
-  notifications: Notification[];
+  
+
   markNotificationRead: (id: string) => void;
 }
 
-  type MyJwtPayload = {
-    personId: number;
-    employeeId: number;
-    email: string;
-    role: string;
-    iat: number;
-    exp: number;
-  };
-
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
-  user, 
-  notifications, 
+
   markNotificationRead 
 }) => {
   const navigate = useNavigate();
 
+  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
-  
- 
-    // Navigate to login page
     navigate('/login');
   };
+
+  const getUserDetails = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+  
+    try {
+      const decoded = jwtDecode<JWTUser>(token);
+      return decoded;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  const [user, setUser] = useState<JWTUser|null>(null);
+
+  useEffect(() => {
+    const decodedUser = getUserDetails();
+    if (decodedUser) {
+      setUser(decodedUser);
+    }
+  }, []);
+
 
   // Add this function to get role from token
   const getUserRole = () => {
@@ -54,13 +69,25 @@ const Layout: React.FC<LayoutProps> = ({
     if (!token) return '';
     
     try {
-      const decoded = jwtDecode<MyJwtPayload>(token);
+      const decoded = jwtDecode<JWTUser>(token);
       return decoded.role.toLowerCase();
     } catch (error) {
       console.error('Error decoding token:', error);
       return '';
     }
   };
+
+  const {
+    data: notifications = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useGetPersonNotificationsQuery(
+    user ? { id: Number(user.personId) } : skipToken,
+    {
+      skip: !user,
+    }
+  );
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
@@ -75,6 +102,8 @@ const Layout: React.FC<LayoutProps> = ({
 
   const userRole = getUserRole();
 
+  console.log(user);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
@@ -83,30 +112,8 @@ const Layout: React.FC<LayoutProps> = ({
             <div className="flex items-center space-x-4 animate-fade-in">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
-                    <div className="relative flex items-center">
-                      <span className="text-sm font-bold text-white">F</span>
-                      <svg 
-                        width="12" 
-                        height="8" 
-                        viewBox="0 0 12 8" 
-                        fill="none" 
-                        className="text-yellow-400 mx-1"
-                      >
-                        <path 
-                          d="M1 4h10m-4-3l3 3-3 3" 
-                          stroke="currentColor" 
-                          strokeWidth="1.5" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="text-sm font-bold text-white">C</span>
-                    </div>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="h-2 w-2 text-white" />
-                  </div>
+                  <img src={logo} className='h-12 w-12 rounded-2xl'/>
+                  
                 </div>
                 <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
@@ -139,9 +146,9 @@ const Layout: React.FC<LayoutProps> = ({
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:shadow-lg transition-all duration-300">
                     <Avatar className="h-10 w-10 ring-2 ring-white/50 shadow-md">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={user.avatar} alt={user.personName} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                        {user.name.charAt(0)}
+                        {user.personName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -149,13 +156,13 @@ const Layout: React.FC<LayoutProps> = ({
                 <DropdownMenuContent className="w-56 bg-white/95 backdrop-blur-lg border-gray-200/50 shadow-xl" align="end">
                   <div className="flex items-center justify-start gap-2 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-t-lg">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={user.avatar} alt={user.personName} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                        {user.name.charAt(0)}
+                        {user.personName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-gray-900">{user.name}</p>
+                      <p className="font-medium text-gray-900">{user.personName}</p>
                       <p className="w-[200px] truncate text-sm text-gray-600">
                         {user.email}
                       </p>

@@ -1,82 +1,58 @@
 import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./pages/Login";
-
-import type { User, Notification } from "@/types";
+import type { JWTUser, User } from "@/types";
 import Layout from "./pages/Layout";
 import Admin from "./pages/Admin";
-// import Employees from "./pages/employee/Employee";
 import Candidate from "./pages/Candidate";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import EmployeeDashboard from "./pages/employee/Employee";
 import JobDetails from "./pages/JobDetails";
-// import JobDetails from "./pages/JobDetails";
+import {
+  useGetPersonNotificationsQuery,
+  useMarkasReadMutation,
+} from "./api-service/notifications/notifications.api";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { jwtDecode } from "jwt-decode";
 
-// Mock notifications
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    userId: "admin-all",
-    title: "New Referral Submitted",
-    message:
-      "John Doe referred Jane Smith for Senior Software Engineer position",
-    type: "referral",
-    read: false,
-    createdAt: new Date("2024-01-18T10:30:00"),
-    relatedId: "1",
-  },
-  {
-    id: "2",
-    userId: "1",
-    title: "Referral Status Updated",
-    message: "Your referral for Jane Smith is now under review",
-    type: "status_update",
-    read: false,
-    createdAt: new Date("2024-01-17T14:20:00"),
-    relatedId: "1",
-  },
-];
+// Helper to decode token
+
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [notifications, setNotifications] =
-    useState<Notification[]>(mockNotifications);
+  
+  //  const decodedUser = getUserDetails();
+  //   if (decodedUser) {
+  //     setUser(decodedUser);
+  //   }
 
-  useEffect(() => {
-    const storedUser = {
-      id: "1",
-      name: "Kiran",
-      email: "abc@Mail.com",
-      role: "admin",
-      avatar: "K",
-    };
-    if (storedUser) {
-      setUser(storedUser);
+  
+
+
+
+  
+
+  const [setAsRead] = useMarkasReadMutation();
+
+  const markNotificationRead = async (notificationId: string) => {
+    try {
+      await setAsRead({ id: Number(notificationId) });
+      refetch(); // Refresh list
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
     }
-  }, []);
+  };    // Adjust path
 
-  const login = async (email: string, password: string) => {
-    const mockUser: User = {
-      id: "1",
-      name: "John Doe",
-      email,
-      role: "admin",
-    };
-
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
+  const mapJWTToUser = (jwt: JWTUser): User => {
+  return {
+    id: jwt.personId.toString(),       // Convert number to string
+    name: jwt.personName,
+    email: jwt.email,
+    role: jwt.role.toLowerCase(),      // Optional: normalize to lowercase
+    avatar: jwt.personName.charAt(0),  // Optional: first letter as avatar
   };
+};
 
-
-
-  const markNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
 
   const router = createBrowserRouter([
     {
@@ -100,9 +76,7 @@ function App() {
       path: "/admin",
       element: (
         <Layout
-          user={user}
-         
-          notifications={notifications}
+       
           markNotificationRead={markNotificationRead}
         >
           <Admin />
@@ -113,13 +87,10 @@ function App() {
       path: "/employee",
       element: (
         <Layout
-          user={user}
-          
-          
-          notifications={notifications}
+      
           markNotificationRead={markNotificationRead}
         >
-          {user && <EmployeeDashboard user={user} />}
+          <EmployeeDashboard  />
         </Layout>
       ),
     },
@@ -127,10 +98,7 @@ function App() {
       path: "/job/:jobId",
       element: (
         <Layout
-          user={user}
-
-          
-          notifications={notifications}
+        
           markNotificationRead={markNotificationRead}
         >
           <JobDetails />
@@ -141,9 +109,7 @@ function App() {
 
   return (
     <>
-      <Provider store={store}>
-        <RouterProvider router={router} />;
-      </Provider>
+        <RouterProvider router={router} />
     </>
   );
 }

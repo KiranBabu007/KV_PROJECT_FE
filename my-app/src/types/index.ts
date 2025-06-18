@@ -6,6 +6,18 @@ export interface User {
   avatar?: string;
 } 
 
+export interface JWTUser {
+  email: string;
+  employeeId: number;
+  exp: number;
+  iat: number;
+  personId: number;
+  personName: string;
+  role: 'EMPLOYEE' | 'ADMIN'; // Add more roles if needed
+  avatar?: string;
+}
+
+
 export interface Job {
   id: string;
   title: string;
@@ -24,15 +36,23 @@ export interface Job {
 }
 
 
+// export interface Notification {
+//   id: string;
+//   userId: string;
+//   title: string;
+//   message: string;
+//   type: 'referral' | 'bonus' | 'interview' | 'status_update' | 'job_update';
+//   read: boolean;
+//   createdAt: Date;
+//   relatedId?: string;
+// }
+
 export interface Notification {
   id: string;
-  userId: string;
   title: string;
-  message: string;
-  type: 'referral' | 'bonus' | 'interview' | 'status_update' | 'job_update';
-  read: boolean;
+  content: string;
+  status: 'READ' | 'UNREAD';
   createdAt: Date;
-  relatedId?: string;
 }
 
 
@@ -57,4 +77,13 @@ export interface Bonus {
   referral: Referral;
 }
 
+export interface MyJwtPayload {
+  personId: number;
+  employeeId: number;
+  name?:string
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+};
 

@@ -13,10 +13,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, formatDistanceToNow } from 'date-fns';
-import type { User, Notification } from '@/types';
+import type { User, Notification, JWTUser } from '@/types';
 
 interface NotificationDropdownProps {
-  user: User;
+  user: JWTUser;
   notifications: Notification[];
   markNotificationRead: (id: string) => void;
 }
@@ -26,11 +26,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   notifications, 
   markNotificationRead 
 }) => {
-  const userNotifications = notifications.filter(
-    n => n.userId === user.id || n.userId === 'admin-all'
-  );
 
-  const unreadCount = userNotifications.filter(n => !n.read).length;
+  const sortdeNotifications = [...notifications].sort((a, b) => {
+    if (a.status !== b.status) {
+      return a.status === "UNREAD" ? -1 : 1;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+   
+
+  const unreadCount = sortdeNotifications.filter(n => n.status==="UNREAD").length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -48,8 +53,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   const markAllAsRead = () => {
-    userNotifications.forEach(notification => {
-      if (!notification.read) {
+    sortdeNotifications.forEach(notification => {
+      if (notification.status==="UNREAD") {
         markNotificationRead(notification.id);
       }
     });
@@ -109,7 +114,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           )}
         </div>
         
-        {userNotifications.length === 0 ? (
+        {sortdeNotifications.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bell className="h-8 w-8 text-gray-400" />
@@ -118,17 +123,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             <p className="text-xs text-gray-400">We'll notify you when something happens</p>
           </div>
         ) : (
-          <ScrollArea className="max-h-80">
-            <div className="p-2">
-              {userNotifications.map((notification, index) => {
-                const iconData = getNotificationIcon(notification.type);
+          <ScrollArea className="max-h-80 overflow-scroll ">
+            <div className="p-2 ">
+              {sortdeNotifications.map((notification, index) => {
+                const iconData = getNotificationIcon("");
                 const IconComponent = iconData.icon;
                 
                 return (
                   <DropdownMenuItem
                     key={notification.id}
                     className={`flex items-start space-x-3 p-4 cursor-pointer rounded-xl transition-all duration-300 mb-2 border ${
-                      !notification.read 
+                      (notification.status==="UNREAD") 
                         ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 hover:from-blue-100 hover:to-indigo-100 shadow-sm' 
                         : 'bg-white hover:bg-gray-50 border-transparent hover:border-gray-200'
                     } animate-fade-in`}
@@ -136,26 +141,26 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                     onClick={() => handleNotificationClick(notification.id)}
                   >
                     <div className="flex-shrink-0 relative">
-                      <div className={`p-2 rounded-lg ${!notification.read ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
+                      <div className={`p-2 rounded-lg ${(notification.status==="UNREAD") ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
                         <IconComponent className={`h-4 w-4 ${iconData.color}`} />
                       </div>
-                      {!notification.read && (
+                      {(notification.status==="UNREAD") && (
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-start justify-between">
-                        <p className={`text-sm font-medium leading-tight ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                        <p className={`text-sm font-medium leading-tight ${(notification.status==="UNREAD") ? 'text-gray-900' : 'text-gray-700'}`}>
                           {notification.title}
                         </p>
-                        {!notification.read && (
+                        {(notification.status==="UNREAD") && (
                           <div className="flex-shrink-0 ml-2">
                             <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
                           </div>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
-                        {notification.message}
+                        {notification.content}
                       </p>
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
                         <Clock className="h-3 w-3" />
@@ -165,14 +170,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                       </div>
                     </div>
                   </DropdownMenuItem>
+                  
                 );
               })}
             </div>
-          </ScrollArea>
-        )}
-        
-        {/* Footer */}
-        {userNotifications.length > 0 && (
+            {unreadCount > 0 && (
           <>
             <DropdownMenuSeparator className="my-0" />
             <div className="p-3 bg-gray-50/50 rounded-b-2xl">
@@ -186,6 +188,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             </div>
           </>
         )}
+          </ScrollArea>
+        )}
+        
+        {/* Footer */}
+        
       </DropdownMenuContent>
     </DropdownMenu>
   );
