@@ -24,3 +24,9 @@ export interface NotificationsResponse {
   created_at: string; // ISO string
   status: string;
 }
+
+export interface ReadResponse {}
+
+export interface ReadPayload {
+  id: number;
+}

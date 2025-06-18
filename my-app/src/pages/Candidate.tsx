@@ -151,16 +151,6 @@ function buildFakeDatesFromHistories(
   return result;
 }
 
-// Fake corresponding dates (static)
-// const fakeDates = [
-//   "Jan 15, 2024",
-//   "Jan 18, 2024",
-//   "Jan 25, 2024",
-//   "Feb 5, 2024",
-//   "Feb 10, 2024",
-//   "Feb 12, 2024",
-// ];
-
 // Updated generateStatusSteps
 function generateStatusSteps(
   currentCompletedStatus: string,

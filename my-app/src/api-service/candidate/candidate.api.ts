@@ -1,5 +1,10 @@
 import baseApi from "../api";
-import type { NotificationsResponse, ReferralsResponse } from "./types";
+import type {
+  NotificationsResponse,
+  ReadPayload,
+  ReadResponse,
+  ReferralsResponse,
+} from "./types";
 
 export const referralApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,14 +14,23 @@ export const referralApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
-    getReferralNotifications: builder.query<NotificationsResponse, string>({
+    getReferralNotifications: builder.query<NotificationsResponse[], string>({
       query: (payload) => ({
-        url: `/notificatons/referral/${payload}`,
+        url: `/notifications/referral/${payload}`,
         method: "GET",
+      }),
+    }),
+    setAsRead: builder.mutation<ReadResponse, ReadPayload>({
+      query: (payload) => ({
+        url: `/notifications/${payload.id}/read`,
+        method: "PATCH",
       }),
     }),
   }),
 });
 
-export const { useGetReferralQuery, useGetReferralNotificationsQuery } =
-  referralApi;
+export const {
+  useGetReferralQuery,
+  useGetReferralNotificationsQuery,
+  useSetAsReadMutation,
+} = referralApi;

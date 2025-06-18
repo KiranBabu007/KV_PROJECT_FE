@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import clsx from "clsx";
-import { useGetReferralNotificationsQuery } from "@/api-service/candidate/candidate.api";
+import {
+  useGetReferralNotificationsQuery,
+  useSetAsReadMutation,
+} from "@/api-service/candidate/candidate.api";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 type NotificationType = {
@@ -18,66 +19,50 @@ type NotificationType = {
   description: string;
   date: string; // ISO string
   read: boolean;
-  type: "application" | "interview" | "decision";
 };
-
-const initialNotifications: NotificationType[] = [
-  {
-    id: 1,
-    title: "Application Update",
-    description: "Your application has progressed to the next stage.",
-    date: "2024-01-20T15:43:00",
-    read: false,
-    type: "application",
-  },
-  {
-    id: 2,
-    title: "Interview Scheduled",
-    description:
-      "Your technical interview is scheduled for Feb 1, 2024 at 10:00 AM.",
-    date: "2024-01-18T10:00:00",
-    read: false,
-    type: "interview",
-  },
-  {
-    id: 3,
-    title: "Decision Available",
-    description: "A decision has been made on your application.",
-    date: "2024-02-10T16:00:00",
-    read: true,
-    type: "decision",
-  },
-];
 
 export default function Notifications({ id }: { id: string }) {
   const { data } = useGetReferralNotificationsQuery(id ? id : skipToken);
-  console.log("🚀 ~ Notifications ~ data:", data);
+  const [setAsRead] = useSetAsReadMutation();
 
-  const [notifications, setNotifications] =
-    useState<NotificationType[]>(initialNotifications);
+  const [localReadIds, setLocalReadIds] = useState<Set<number>>(new Set());
+
+  const notifications: NotificationType[] = useMemo(() => {
+    if (!data) return [];
+
+    const mapped = data.map((n: any) => ({
+      id: n.id,
+      title: n.title,
+      description: n.content,
+      date: n.createdAt,
+      read: n.status === "READ" || localReadIds.has(n.id),
+    }));
+
+    // Unread notifications first
+    return mapped.sort((a, b) => Number(a.read) - Number(b.read));
+  }, [data, localReadIds]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (id: number) => {
-    setNotifications((notifications) =>
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const markAsRead = async (id: number) => {
+    if (!localReadIds.has(id)) {
+      setLocalReadIds((prev) => new Set(prev).add(id));
+      try {
+        await setAsRead({ id });
+      } catch (err) {
+        console.error("Failed to mark as read:", err);
+      }
+    }
   };
 
-  const markAllAsRead = () =>
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
-
-  const addNotification = (notif: Omit<NotificationType, "id" | "read">) => {
-    setNotifications((prev) => [
-      {
-        id: prev.length ? Math.max(...prev.map((n) => n.id)) + 1 : 1,
-        read: false,
-        ...notif,
-      },
-      ...prev,
-    ]);
-    toast(notif.title, {
-      description: notif.description,
-    });
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    setLocalReadIds(new Set(notifications.map((n) => n.id)));
+    try {
+      await Promise.all(unreadIds.map((id) => setAsRead({ id })));
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
   };
 
   return (
@@ -93,7 +78,7 @@ export default function Notifications({ id }: { id: string }) {
             )}
           </button>
         </PopoverTrigger>
-        {/* Set width and padding using Tailwind default classes, no config */}
+
         <PopoverContent className="w-[420px] p-4">
           <div className="px-3 pt-3 pb-3 flex items-center justify-between">
             <span className="font-semibold text-lg">Notifications</span>
@@ -114,7 +99,7 @@ export default function Notifications({ id }: { id: string }) {
               </div>
             ) : (
               notifications.map((n) => (
-                <button
+                <div
                   key={n.id}
                   className={clsx(
                     "w-full text-left px-6 py-5 flex flex-col rounded-lg border-b last:border-b-0 transition-all",
@@ -129,7 +114,7 @@ export default function Notifications({ id }: { id: string }) {
                     {!n.read && (
                       <span className="h-2 w-2 rounded-full bg-blue-500 mr-1" />
                     )}
-                    <span className={clsx("font-medium text-blue-800 text-xl")}>
+                    <span className="font-medium text-blue-800 text-xl">
                       {n.title}
                     </span>
                   </div>
@@ -139,52 +124,9 @@ export default function Notifications({ id }: { id: string }) {
                   <span className="text-base text-gray-700 mt-1">
                     {n.description}
                   </span>
-                </button>
+                </div>
               ))
             )}
-          </div>
-          <Separator />
-          <div className="flex gap-2 p-4 justify-end">
-            <button
-              className="text-xs px-3 py-2 rounded bg-gray-100 hover:bg-blue-100 border"
-              onClick={() =>
-                addNotification({
-                  title: "Application Update",
-                  description:
-                    "Your application has progressed to the next stage.",
-                  date: new Date().toISOString(),
-                  type: "application",
-                })
-              }
-            >
-              Simulate App Update
-            </button>
-            <button
-              className="text-xs px-3 py-2 rounded bg-gray-100 hover:bg-blue-100 border"
-              onClick={() =>
-                addNotification({
-                  title: "Interview Scheduled",
-                  description: "Your technical interview is scheduled.",
-                  date: new Date().toISOString(),
-                  type: "interview",
-                })
-              }
-            >
-              Simulate Interview
-            </button>
-            <button
-              className="text-xs px-3 py-2 rounded bg-gray-100 hover:bg-blue-100 border"
-              onClick={() =>
-                addNotification({
-                  title: "Decision Available",
-                  description: "A decision has been made on your application.",
-                  date: new Date().toISOString(),
-                  type: "decision",
-                })
-              }
-            >
-              Simulate Decision
-            </button>
           </div>
         </PopoverContent>
       </Popover>
