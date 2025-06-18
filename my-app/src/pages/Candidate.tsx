@@ -18,6 +18,7 @@ import Notifications from "@/components/candidate/Notifications";
 import ReferralTimeline from "@/components/candidate/ReferralTimeline";
 import ReferralDetails from "@/components/candidate/ReferralDetails";
 import type { ReferralsResponse } from "@/api-service/candidate/types";
+import ReferralLoadingSkeleton from "@/components/candidate/ReferralLoadingSkeleton";
 
 // Referral Data (Static)
 // const referralData = {
@@ -242,13 +243,18 @@ export default function Index() {
   let { id } = useParams();
   console.log("🚀 ~ Index ~ params.id:", id);
 
-  const { data } = useGetReferralQuery(id ? id : skipToken);
+  const { data, isLoading } = useGetReferralQuery(id ? id : skipToken);
   console.log("🚀 ~ data:", data);
+
+  if (isLoading) {
+    return <ReferralLoadingSkeleton />;
+  }
+
   const referralData: ReferralData | null = data
     ? buildReferralData(data)
     : null;
   if (!referralData) {
-    return <div>Referral Data not loaded..</div>; // Or show a skeleton/spinner
+    return <div>Referral Data not found or an error occurred.</div>;
   }
 
   const fakeDates = data
