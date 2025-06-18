@@ -99,41 +99,8 @@ export interface APIReferral {
     salary: number;
     bonusForReferral: number;
   };
-  referrer: {
-    id: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: null;
-    name: string;
-    phone: string;
-    email: string;
-    role: string;
-    employee: {
-      id: number;
-      createdAt: string;
-      updatedAt: string;
-      deletedAt: null;
-      joiningDate: string;
-      password: string;
-    };
-  };
-  referred: {
-    id: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: null;
-    name: string;
-    phone: string;
-    email: string;
-    role: string;
-    candidate: {
-      id: number;
-      createdAt: string;
-      updatedAt: string;
-      deletedAt: null;
-      yearsOfExperience: number;
-    };
-  };
+  referrer: Referrer
+  referred: Referred
   resume: {
     id:number;
   } | null;

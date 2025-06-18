@@ -5,10 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Search, Calendar, User, Mail, Phone, FileText, Clock, Award, Users,Info } from 'lucide-react';
 import { format } from 'date-fns';
-import type { APIReferral, Referral } from '@/types';
+import { ReferralStatus, type APIReferral, type Referral } from '@/types';
 import { 
   useGetReferralsListQuery,
   useUpdateReferralStatusMutation,
@@ -39,38 +38,32 @@ const ReferralManagement: React.FC = () => {
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
   const [downloadResume]=useGetResumeMutation();
   // Map API data to component format
-  const referrals = useMemo(() => 
-    (referralsData || [])
-      .filter((ref): ref is NonNullable<typeof ref> => ref !== null) // Filter out null values
-      .map((ref): APIReferral => ({
-        id: String(ref.id),
-        jobId: String(ref.jobPosting?.id || ''),
-        jobTitle: ref.jobPosting?.title || '',
-        referrerId: String(ref.referrer?.id || ''),
-        referrerName: ref.referrer?.name || '',
-        candidateName: ref.referred?.name || '',
-        candidateEmail: ref.referred?.email || '',
-        candidatePhone: ref.referred?.phone || '',
-        status: ref.status || 'Referral Submitted',
-        submittedAt: new Date(ref.createdAt || Date.now()),
-        updatedAt: new Date(ref.updatedAt || Date.now()),
-        referralCode: `REF-${String(ref.id).padStart(3, '0')}`,
-        bonusEligible: Boolean(ref.currentRound >= 1),
-        bonusPaid: false,
-        yearsOfExperience: ref.referred?.candidate?.yearsOfExperience || 0,
-        skills: ref.jobPosting?.skills || '',
-        location: ref.jobPosting?.location || '',
-        jobDescription: ref.jobPosting?.description || '',
-        bonusAmount: ref.jobPosting?.bonusForReferral || 0,
-        resumeId: ref.resume?.id || null,
-      })), [referralsData]
-
-
-  );
-
-
-
-
+const referrals = useMemo(() =>
+  (referralsData || [])
+    .filter((ref): ref is APIReferral => ref !== null)
+    .map((ref): Referral => ({
+      id: String(ref.id),
+      jobId: String(ref.jobPosting?.id ?? ''),
+      jobTitle: ref.jobPosting?.title ?? '',
+      referrerId: String(ref.referrer?.id ?? ''),
+      referrerName: ref.referrer?.name ?? '',
+      candidateName: ref.referred?.name ?? '',
+      candidateEmail: ref.referred?.email ?? '',
+      candidatePhone: ref.referred?.phone ?? '',
+      status: ref.status ?? 'Referral Submitted',
+      submittedAt: ref.createdAt ?? '',
+      updatedAt: ref.updatedAt ?? '',
+      referralCode: `REF-${String(ref.id).padStart(3, '0')}`,
+      bonusEligible: Boolean(ref.currentRound >= 1),
+      bonusPaid: false,
+      bonusAmount: typeof ref.jobPosting?.bonusForReferral === 'number' ? ref.jobPosting.bonusForReferral : 0,
+      resumeId: ref.resume?.id ? String(ref.resume.id) : null,
+      trackingToken: '', // Not present in APIReferral, set as needed
+      createdAt: ref.createdAt ?? '',
+      deletedAt: ref.deletedAt ?? null,
+    })),
+  [referralsData]
+);
     
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
@@ -134,15 +127,7 @@ const ReferralManagement: React.FC = () => {
     }
   };
 
-  const enum ReferralStatus {
-    REFERRAL_SUBMITTED = "Referral Submitted",
-    REFERRAL_UNDER_REVIEW = "Referral Under Review",
-    REFERRAL_ACCEPTED = "Referral Accepted",
-    INTERVIEW_ROUND_1 = "Interviews Round 1",
-    INTERVIEWS_ROUND_2 = "Interview Round 2",
-    ACCEPTED = "Accepted",
-    REJECTED = "Rejected"
-}
+
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -186,7 +171,7 @@ const getStatusIcon = (status: string) => {
     const lowercaseQuery = query.toLowerCase();
     return referrals.filter(
       (referral) =>
-        referral.referred.email.toLowerCase().includes(lowercaseQuery) ||
+        referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
@@ -710,43 +695,7 @@ const getStatusIcon = (status: string) => {
                             </div>
                           </div>
                         </div>
-
-                        {/* Action Buttons */}
-                        {referral.resumeId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 font-medium"
-                            onClick={() => handleDownloadResume(referral.resumeId, referral.candidateName)}
-                          >
-                            <FileText className="h-4 w-4 mr-2 text-blue-600" />
-                            View Resume
-                          </Button>
-                        )}
-
-                        {/* Notes Section */}
-                        <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-800 flex items-center">
-                            <FileText className="h-4 w-4 mr-2 text-gray-600" />
-                            Administrative Notes
-                          </label>
-                          <Textarea
-                            placeholder="Add internal notes about this referral (candidate assessment, interview feedback, etc.)..."
-                            className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 min-h-[120px] transition-all duration-200 resize-none"
-                            value={referral.notes || ""}
-                            // You might need a separate mutation or local state for notes if they are not part of the status update
-                            // For now, removing the onChange as it attempts to update a non-existent local state
-                            // onChange={(e) =>
-                            //   updateReferral(referral.id, {
-                            //     notes: e.target.value,
-                            //   })
-                            // }
-                          />
-                          <p className="text-xs text-gray-500">
-                            These notes are for internal use only and will not
-                            be visible to the referrer or candidate.
-                          </p>
-                        </div>
+     
                       </CardContent>
                     </Card>
                   );
