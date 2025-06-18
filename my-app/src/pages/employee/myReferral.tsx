@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Calendar, Code } from "lucide-react";
+import { User, Mail, Phone, Calendar, Code, Search } from "lucide-react";
 import { format } from "date-fns";
 import { jwtDecode } from "jwt-decode";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetEmployeeReferralsQuery } from "@/api-service/referrals/referrals.api";
+import { Input } from "@/components/ui/input";
 
 type MyJwtPayload = {
   personId: number;
@@ -84,6 +85,13 @@ const MyReferrals: React.FC = () => {
   );
   console.log("🚀 ~ myReferrals:", myReferrals);
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredReferrals = myReferrals.filter(referral => 
+    referral.candidateEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    referral.referralCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "referral_submitted":
@@ -134,26 +142,51 @@ const MyReferrals: React.FC = () => {
           <p className="text-gray-600">Track the status of your referrals</p>
         </div>
         <div className="text-sm text-gray-600">
-          {myReferrals.length} total referrals
+          {filteredReferrals.length} of {myReferrals.length} referrals
         </div>
       </div>
 
-      {myReferrals.length === 0 ? (
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Search by email or referral code..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 bg-white/50 backdrop-blur-sm border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+        />
+      </div>
+
+      {filteredReferrals.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">
-              You haven't made any referrals yet.
-            </p>
-            <p className="text-sm text-gray-400">
-              Browse available jobs and start referring your network to earn
-              rewards!
-            </p>
+            {myReferrals.length === 0 ? (
+              <>
+                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">
+                  You haven't made any referrals yet.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Browse available jobs and start referring your network to earn
+                  rewards!
+                </p>
+              </>
+            ) : (
+              <>
+                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">
+                  No referrals match your search
+                </p>
+                <p className="text-sm text-gray-400">
+                  Try searching with a different email or referral code
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {myReferrals.map((referral) => (
+          {filteredReferrals.map((referral) => (
             <Card key={referral.id}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
