@@ -10,6 +10,8 @@ import Candidate from "./pages/Candidate";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import EmployeeDashboard from "./pages/employee/Employee";
+import JobDetails from "./pages/JobDetails";
+// import JobDetails from "./pages/JobDetails";
 
 // Mock notifications
 const mockNotifications: Notification[] = [
@@ -66,18 +68,7 @@ function App() {
     localStorage.setItem("user", JSON.stringify(mockUser));
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
 
-  const switchRole = (role: "admin" | "employee" | "candidate") => {
-    if (user) {
-      const updatedUser = { ...user, role };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-  };
 
   const markNotificationRead = (id: string) => {
     setNotifications((prev) =>
@@ -110,8 +101,7 @@ function App() {
       element: (
         <Layout
           user={user}
-          logout={logout}
-          switchRole={switchRole}
+         
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
@@ -124,12 +114,26 @@ function App() {
       element: (
         <Layout
           user={user}
-          logout={logout}
-          switchRole={switchRole}
+          
+          
           notifications={notifications}
           markNotificationRead={markNotificationRead}
         >
           {user && <EmployeeDashboard user={user} />}
+        </Layout>
+      ),
+    },
+    {
+      path: "/job/:jobId",
+      element: (
+        <Layout
+          user={user}
+
+          
+          notifications={notifications}
+          markNotificationRead={markNotificationRead}
+        >
+          <JobDetails />
         </Layout>
       ),
     },

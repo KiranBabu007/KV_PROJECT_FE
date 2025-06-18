@@ -12,47 +12,18 @@ import {
   Sparkles,
   Target,
   Award,
+  DollarSign,
+  Clock,
 } from "lucide-react";
 import JobBrowser from "./jobBrowser";
 import ReferralForm from "./referralForm";
 import MyReferrals from "./myReferral";
 import type { Job, Referral, User } from "@/types";
+import { useGetJobsListQuery } from '@/api-service/job/job.api';
+import { useGetEmployeeBonusesQuery } from '@/api-service/bonus/bonus.api';
+import { format } from "date-fns";
 
 // Local mock data
-const mockJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    description:
-      "We are looking for an experienced software engineer to join our team.",
-    requirements: ["React", "TypeScript", "5+ years experience"],
-    location: "San Francisco, CA",
-    department: "Engineering",
-    salary: "₹90,00,000 - ₹1,35,00,000",
-    experience: "5+ years",
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    description: "Lead product strategy and development for our core platform.",
-    requirements: ["Product Management", "Agile", "3+ years experience"],
-    location: "New York, NY",
-    department: "Product",
-    salary: "₹75,00,000 - ₹1,05,00,000",
-    experience: "3-5 years",
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date("2024-01-20"),
-    updatedAt: new Date("2024-01-20"),
-    status: "active",
-  },
-];
-
 const mockReferrals: Referral[] = [
   {
     id: "1",
@@ -78,17 +49,31 @@ interface EmployeeDashboardProps {
 }
 
 const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
-  const [jobs] = useState<Job[]>(mockJobs);
+  const { data: jobs = [], isLoading: jobsLoading } = useGetJobsListQuery({});
+  
+  const { data: bonuses = [], isLoading: bonusesLoading } = useGetEmployeeBonusesQuery("1");
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<
-    string | null
+    number | null
   >(null);
 
-  const activeJobs = jobs.filter((job) => job.status === "active").length;
+  const activeJobs = jobsLoading ? 0 : jobs.filter((job) => job.deletedAt === null).length;
   const myReferrals = referrals.filter((r) => r.referrerId === user?.id).length;
   const acceptedReferrals = referrals.filter(
     (r) => r.referrerId === user?.id && r.status === "accepted"
   ).length;
+
+  const totalBonusAmount = bonuses?.reduce((sum, bonus) => 
+    bonus.bonusStatus === 'SETTLED' ? sum + (bonus.bonusAmount || 0) : sum, 0
+  ) || 0;
+
+  const pendingBonusAmount = bonuses?.reduce((sum, bonus) => 
+    bonus.bonusStatus === 'PENDING' ? sum + (bonus.bonusAmount || 0) : sum, 0
+  ) || 0;
+
+  const pendingBonusCount = bonuses?.filter(bonus => 
+    bonus.bonusStatus === 'PENDING'
+  ).length || 0;
 
   const stats = [
     {
@@ -100,20 +85,20 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
       trend: `${activeJobs} open`,
     },
     {
-      title: "My Referrals",
-      value: myReferrals,
-      icon: Users,
+      title: "Total Bonus Earned",
+      value: `₹${totalBonusAmount.toLocaleString()}`,
+      icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-gradient-to-br from-green-50 to-green-100",
-      trend: "Total sent",
+      trend: "Settled bonuses",
     },
     {
-      title: "Successful Referrals",
-      value: acceptedReferrals,
-      icon: TrendingUp,
+      title: "Pending Bonuses",
+      value: `₹${pendingBonusAmount.toLocaleString()}`,
+      icon: Clock,
       color: "text-purple-600",
       bgColor: "bg-gradient-to-br from-purple-50 to-purple-100",
-      trend: `₹${acceptedReferrals * 75000} earned`,
+      trend: `${pendingBonusCount} pending`,
     },
   ];
 
@@ -216,7 +201,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
           </div>
 
           <TabsContent value="jobs" className="animate-fade-in">
-            {selectedJobForReferral ? (
+            {selectedJobForReferral !== null ? (
               <Card className="glass border-0 shadow-xl">
                 <CardHeader className="bg-gradient-to-r p-4 from-blue-50 to-indigo-50 rounded-t-lg">
                   <div className="flex justify-between items-center">
@@ -242,13 +227,16 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                   <ReferralForm
                     jobId={selectedJobForReferral}
                     user={user}
+                    jobs={jobs}
                     onCancel={() => setSelectedJobForReferral(null)}
                   />
                 </CardContent>
               </Card>
             ) : (
               <div className="animate-slide-in-right">
-                <JobBrowser
+                <JobBrowser 
+                  jobs={jobs}
+                  isLoading={jobsLoading}
                   onReferClick={(jobId) => setSelectedJobForReferral(jobId)}
                 />
               </div>
@@ -286,7 +274,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                             Total Earned
                           </h3>
                           <p className="text-2xl font-bold text-green-600">
-                            ₹{acceptedReferrals * 75000}
+                            ₹{totalBonusAmount}
                           </p>
                           <p className="text-sm text-gray-600">
                             From {acceptedReferrals} successful referrals
@@ -305,19 +293,82 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                             Potential Earnings
                           </h3>
                           <p className="text-2xl font-bold text-blue-600">
-                            ₹{(myReferrals - acceptedReferrals) * 75000}
+                            ₹{pendingBonusAmount}
                           </p>
                           <p className="text-sm text-gray-600">
-                            From {myReferrals - acceptedReferrals} pending
-                            referrals
+                            From {pendingBonusCount} pending referrals
                           </p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Reward Info */}
-                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-xl border border-purple-200 animate-bounce-in">
+                  {/* Bonus List Section */}
+                  <div className="mt-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Referral Bonuses</h3>
+                    
+                    {bonusesLoading ? (
+                      <div className="flex justify-center p-8">
+                        <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 rounded-full" />
+                      </div>
+                    ) : bonuses.length === 0 ? (
+                      <div className="text-center py-8 bg-gray-50 rounded-xl">
+                        <div className="mb-4">
+                          <DollarSign className="h-12 w-12 mx-auto text-gray-400" />
+                        </div>
+                        <p className="text-gray-600">No bonus records found</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {bonuses.map((bonus) => (
+                          <div
+                            key={bonus.id}
+                            className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-100 p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <div className="flex items-center space-x-2">
+                                  <DollarSign className="h-5 w-5 text-green-600" />
+                                  <span className="font-semibold text-lg text-gray-900">
+                                    ₹{bonus.bonusAmount.toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  Trigger Date: {format(new Date(bonus.triggerDate), 'PPP')}
+                                </div>
+                              </div>
+                              <Badge
+                                className={`${
+                                  bonus.bonusStatus === 'SETTLED'
+                                    ? 'bg-green-100 text-green-800'
+                                    : bonus.bonusStatus === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                } px-3 py-1`}
+                              >
+                                {bonus.bonusStatus}
+                              </Badge>
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">
+                                  Last updated: {format(new Date(bonus.updatedAt), 'PP')}
+                                </span>
+                                {bonus.referral && (
+                                  <span className="text-gray-500">
+                                    Referral ID: {bonus.referral.id}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Moved and Updated How It Works */}
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-xl border border-purple-200 animate-bounce-in mt-8">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto">
                         <Award className="h-8 w-8 text-white" />
@@ -327,22 +378,10 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
                           How It Works
                         </h3>
                         <div className="space-y-2 text-sm text-gray-700">
-                          <p>
-                            <strong>₹75,000 bonus</strong> for each
-                            successful referral
-                          </p>
-                          <p>
-                             <strong>6 months employment</strong> required for
-                            payout
-                          </p>
-                          <p>
-                             <strong>No limit</strong> on the number of
-                            referrals you can make
-                          </p>
-                          <p>
-                            <strong>Monthly bonuses</strong> for top
-                            performers
-                          </p>
+                          <p>Refer talented professionals to open positions</p>
+                          <p>Track your referrals through the hiring process</p>
+                          <p>Earn rewards for successful placements</p>
+                          <p>Get notified when your referral reaches key milestones</p>
                         </div>
                       </div>
                     </div>

@@ -7,19 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Users, Calendar, Search, UserPlus, DollarSign, Clock, Eye, Building2, Target, Gift } from 'lucide-react';
 import { format } from 'date-fns';
-import { useGetJobsListQuery } from '@/api-service/job/job.api'; // Ensure this path is correct
 
 interface JobBrowserProps {
+  jobs: any[]; // Update this with your Job type
+  isLoading: boolean;
   onReferClick: (jobId: string) => void;
 }
 
-const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
-  const { data: jobsData = [], isLoading, error } = useGetJobsListQuery({});
+const JobBrowser: React.FC<JobBrowserProps> = ({ jobs, isLoading, onReferClick }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
 
-  const activeJobs = jobsData.filter((job) => job.deletedAt === null);
+  const activeJobs = jobs.filter((job) => job.deletedAt === null);
 
   const filteredJobs = activeJobs.filter(job => {
     const matchesSearch =
@@ -75,8 +75,6 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
       <div className="space-y-6">
         {isLoading ? (
           <div className="text-center text-gray-500">Loading jobs...</div>
-        ) : error ? (
-          <div className="text-center text-red-500">Failed to load jobs</div>
         ) : filteredJobs.length === 0 ? (
           <Card className="glass border-0 shadow-xl animate-fade-in">
             <CardContent className="p-12 text-center">
@@ -149,7 +147,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ onReferClick }) => {
                         View Details
                       </Button>
                       <Button
-                        onClick={() => onReferClick(String(job.id))}
+                        onClick={() => onReferClick(job.id)}
                         size="sm"
                         className="flex items-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                       >
