@@ -467,7 +467,7 @@ const getStatusIcon = (status: string) => {
                                 referral.status
                               )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
                             >
-
+                           </Badge>
                             <Badge
                               className={`${getStatusColor(
                                 referral.status
