@@ -3,12 +3,11 @@ export interface EmployeeReferralsResponse {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  currentRound: number;
-  status: string; // e.g., "Rejected", "Accepted", etc.
+  status: string; // e.g., "Referral Submitted", "Rejected", etc.
   jobPosting: JobPosting;
-  referrer: Referrer;
   referred: Referred;
   resume: string | null;
+  bonus: Bonus | null;
 }
 
 export interface JobPosting {
@@ -27,25 +26,6 @@ export interface JobPosting {
   bonusForReferral: number;
 }
 
-export interface Referrer {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  name: string;
-  phone: string;
-  email: string;
-  role: string;
-  employee: {
-    id: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    joiningDate: string;
-    password: string;
-  };
-}
-
 export interface Referred {
   id: number;
   createdAt: string;
@@ -54,12 +34,15 @@ export interface Referred {
   name: string;
   phone: string;
   email: string;
-  role: string;
-  candidate: {
-    id: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    yearsOfExperience: number;
-  };
+  role: string; // likely "CANDIDATE"
+}
+
+export interface Bonus {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  bonusAmount: number;
+  bonusStatus: "PENDING" | "SETTLED"; // add more statuses if needed
+  triggerDate: string;
 }

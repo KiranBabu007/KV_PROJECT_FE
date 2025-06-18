@@ -1,65 +1,100 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, Calendar, Code } from "lucide-react";
 import { format } from "date-fns";
-import type { Referral } from "@/types";
+import { jwtDecode } from "jwt-decode";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { useGetEmployeeReferralsQuery } from "@/api-service/referrals/referrals.api";
 
-// Local mock data
-const initialReferrals: Referral[] = [
-  {
-    id: "1",
-    jobId: "1",
-    jobTitle: "Senior Software Engineer",
-    referrerId: "1",
-    referrerName: "John Doe",
-    candidateName: "Jane Smith",
-    candidateEmail: "jane.smith@email.com",
-    candidatePhone: "+1-555-0123",
-    status: "under_review",
-    submittedAt: new Date("2024-01-16"),
-    updatedAt: new Date("2024-01-17"),
-    referralCode: "REF-001",
-    bonusEligible: false,
-    bonusPaid: false,
-    trackingToken: "sample-token-123",
-  },
-  {
-    id: "2",
-    jobId: "2",
-    jobTitle: "Product Manager",
-    referrerId: "1",
-    referrerName: "John Doe",
-    candidateName: "Mike Johnson",
-    candidateEmail: "mike.johnson@email.com",
-    candidatePhone: "+1-555-0124",
-    status: "accepted",
-    submittedAt: new Date("2024-01-10"),
-    updatedAt: new Date("2024-01-22"),
-    referralCode: "REF-002",
-    bonusEligible: true,
-    bonusPaid: false,
-    trackingToken: "sample-token-456",
-  },
-];
+type MyJwtPayload = {
+  personId: number;
+  employeeId: number;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+};
+
+type Referral = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  referrerId: string;
+  referrerName: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  status: string;
+  submittedAt: Date;
+  updatedAt: Date;
+  referralCode: string;
+  bonusEligible: boolean;
+  bonusPaid: boolean;
+  trackingToken: string;
+  createdAt: Date;
+  deletedAt: Date | null;
+  // notes?: string; // This property is not present in the mapped object
+};
+
+const getEmployeeID = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return "";
+
+  try {
+    const decoded = jwtDecode<MyJwtPayload>(token);
+    return decoded.employeeId;
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return "";
+  }
+};
+
+const mapApiToReferral = (entry: any, employeeId: string): Referral => ({
+  id: String(entry.id),
+  jobId: String(entry.jobPosting?.id ?? ""),
+  jobTitle: entry.jobPosting?.title ?? "Unknown Job",
+  referrerId: String(employeeId),
+  referrerName: "", // Can be enhanced if referrer details are available
+  candidateName: entry.referred?.name ?? "Unknown",
+  candidateEmail: entry.referred?.email ?? "",
+  candidatePhone: entry.referred?.phone ?? "",
+  status: entry.status?.toLowerCase().replace(/ /g, "_") ?? "submitted",
+  submittedAt: new Date(entry.createdAt),
+  updatedAt: new Date(entry.updatedAt),
+  referralCode: `REF-${entry.id.toString().padStart(3, "0")}`,
+  bonusEligible: !!entry.bonus,
+  bonusPaid: entry.bonus?.bonusStatus === "SETTLED", // Corrected based on API type
+  trackingToken: `token-${entry.id}`,
+  createdAt: new Date(entry.createdAt),
+  deletedAt: entry.deletedAt ? new Date(entry.deletedAt) : null,
+});
 
 const MyReferrals: React.FC = () => {
-  const [referrals] = useState<Referral[]>(initialReferrals);
-  const currentUserId = "1"; // Mock current user ID
+  const currentUserId = getEmployeeID();
+  const { data } = useGetEmployeeReferralsQuery(1);
+  console.log("🚀 ~ data:", data);
 
-  const myReferrals = referrals.filter((r) => r.referrerId === currentUserId);
+  const referrals: Referral[] = Array.isArray(data)
+    ? data.map((entry) => mapApiToReferral(entry, String(currentUserId)))
+    : [];
+
+  const myReferrals = referrals.filter(
+    (r) => r.referrerId === String(currentUserId)
+  );
+  console.log("🚀 ~ myReferrals:", myReferrals);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "submitted":
+      case "referral_submitted":
         return "bg-blue-100 text-blue-800";
-      case "under_review":
+      case "referral_under_review":
         return "bg-yellow-100 text-yellow-800";
-      case "interview_scheduled":
+      case "referral_accepted":
         return "bg-purple-100 text-purple-800";
-      case "round_1":
+      case "interview_round_1":
         return "bg-indigo-100 text-indigo-800";
-      case "round_2":
+      case "interview_round_2":
         return "bg-pink-100 text-pink-800";
       case "accepted":
         return "bg-green-100 text-green-800";
@@ -72,19 +107,19 @@ const MyReferrals: React.FC = () => {
 
   const getStatusDescription = (status: string) => {
     switch (status) {
-      case "submitted":
+      case "referral_submitted":
         return "Your referral has been submitted and is awaiting initial review.";
-      case "under_review":
+      case "referral_under_review":
         return "HR is currently reviewing the candidate's application.";
-      case "interview_scheduled":
+      case "referral_accepted":
         return "The candidate has been scheduled for an interview.";
-      case "round_1":
+      case "interview_round_1":
         return "The candidate has cleared the first round and is progressing through the evaluation.";
-      case "round_2":
+      case "interview_round_2":
         return "The candidate is now in the second round of interviews.";
       case "accepted":
         return "Congratulations! Your referral has been accepted.";
-      case "declined":
+      case "rejected":
         return "Unfortunately, this referral was not selected at this time.";
       default:
         return "";
@@ -186,13 +221,14 @@ const MyReferrals: React.FC = () => {
                   </div>
                 )}
 
-                {referral.notes && (
+                {/* referral.notes is not present in the mapped object */}
+                {/* {referral.notes && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-700">
                       <strong>Your notes:</strong> {referral.notes}
                     </p>
                   </div>
-                )}
+                )} */}
               </CardContent>
             </Card>
           ))}
