@@ -17,9 +17,11 @@ import {
 import { useGetResumeMutation,useSendResumeMutation } from '@/api-service/resume/resume.api';
 
 
+
 const ReferralManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
+
 
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [joiningDate, setJoiningDate] = useState<string>('');
@@ -63,11 +65,13 @@ const ReferralManagement: React.FC = () => {
         resumeId: ref.resume?.id || null,
       })), [referralsData]
 
+
   );
 
 
 
 
+    
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
     try {
@@ -380,6 +384,7 @@ const getStatusIcon = (status: string) => {
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card selection when button is clicked
                                   downloadResume(referral.resumeId)
+
                                 }}
                               >
                                 Download Resume
