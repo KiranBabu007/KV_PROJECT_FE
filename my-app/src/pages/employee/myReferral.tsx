@@ -44,7 +44,7 @@ const getEmployeeID = () => {
 
   try {
     const decoded = jwtDecode<MyJwtPayload>(token);
-    return decoded.employeeId;
+    return decoded.personId;
   } catch (error) {
     console.error("Error decoding token:", error);
     return "";
@@ -73,7 +73,9 @@ const mapApiToReferral = (entry: any, employeeId: string): Referral => ({
 
 const MyReferrals: React.FC = () => {
   const currentUserId = getEmployeeID();
-  const { data } = useGetEmployeeReferralsQuery(1);
+  const { data } = useGetEmployeeReferralsQuery(
+    currentUserId ? currentUserId : skipToken
+  );
   console.log("🚀 ~ data:", data);
 
   const referrals: Referral[] = Array.isArray(data)

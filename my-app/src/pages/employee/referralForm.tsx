@@ -6,68 +6,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, X, Copy, Check } from "lucide-react";
 import type { Job, Referral, User } from "@/types";
 import {
-  useGetResumeQuery,
   useSendResumeMutation,
 } from "@/api-service/resume/resume.api";
 
-// Local mock data
-// const mockJobs: Job[] = [
+import { useCreateReferralMutation } from "@/api-service/referrals/referrals.api"; // Import the mutation hook
+
+// Local mock data (Keeping this for context, but it won't be used for the actual API call)
+// const mockReferrals: Referral[] = [
 //   {
 //     id: "1",
-//     title: "Senior Software Engineer",
-//     description:
-//       "We are looking for an experienced software engineer to join our team.",
-//     requirements: ["React", "TypeScript", "5+ years experience"],
-//     location: "San Francisco, CA",
-//     department: "Engineering",
-//     salary: "₹90,00,000 - ₹1,35,00,000",
-//     experience: "5+ years",
-//     openPositions: 2,
-//     totalPositions: 3,
-//     createdAt: new Date("2024-01-15"),
-//     updatedAt: new Date("2024-01-15"),
-//     status: "active",
-//   },
-//   {
-//     id: "2",
-//     title: "Product Manager",
-//     description: "Lead product strategy and development for our core platform.",
-//     requirements: ["Product Management", "Agile", "3+ years experience"],
-//     location: "New York, NY",
-//     department: "Product",
-//     salary: "₹75,00,000 - ₹1,05,00,000",
-//     experience: "3-5 years",
-//     openPositions: 1,
-//     totalPositions: 1,
-//     createdAt: new Date("2024-01-20"),
-//     updatedAt: new Date("2024-01-20"),
-//     status: "active",
+//     jobId: "1",
+//     jobTitle: "Senior Software Engineer",
+//     referrerId: "1",
+//     referrerName: "John Doe",
+//     candidateName: "Jane Smith",
+//     candidateEmail: "jane.smith@email.com",
+//     candidatePhone: "+1-555-0123",
+//     status: "under_review",
+//     submittedAt: new Date("2024-01-16"),
+//     updatedAt: new Date("2024-01-17"),
+//     referralCode: "REF-001",
+//     bonusEligible: false,
+//     bonusPaid: false,
+//     // trackingToken: 'sample-token-123'
 //   },
 // ];
 
-const mockReferrals: Referral[] = [
-  {
-    id: "1",
-    jobId: "1",
-    jobTitle: "Senior Software Engineer",
-    referrerId: "1",
-    referrerName: "John Doe",
-    candidateName: "Jane Smith",
-    candidateEmail: "jane.smith@email.com",
-    candidatePhone: "+1-555-0123",
-    status: "under_review",
-    submittedAt: new Date("2024-01-16"),
-    updatedAt: new Date("2024-01-17"),
-    referralCode: "REF-001",
-    bonusEligible: false,
-    bonusPaid: false,
-    // trackingToken: 'sample-token-123'
-  },
-];
-
 interface ReferralFormProps {
   jobId: string;
-  jobs: any[];
+  jobs: any[]; 
   user: User;
   onCancel?: () => void;
 }
@@ -78,20 +45,20 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   user,
   onCancel,
 }) => {
-  const [referrals, setReferrals] = useState<Referral[]>(mockReferrals);
   const [formData, setFormData] = useState({
     candidateName: "",
     candidateEmail: "",
     candidatePhone: "",
-    experience:0,
-    resume:0,
+    experience: 0,
+    resume: 0,
     notes: "",
   });
 
-  // const {data:resumeFile} = useGetResumeQuery(id)
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeId, setResumeId] = useState<number | null>(null);
+  const [resumeId, setResumeId] = useState<string | null>(null);
   const [sendResume] = useSendResumeMutation();
+  const [createReferral] = useCreateReferralMutation(); // Initialize the mutation hook
+
   const [loading, setLoading] = useState(false);
   const [trackingLink, setTrackingLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -101,43 +68,6 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   const job = jobs.find((j) => j.id === jobId);
 
   if (!job || !user) return null;
-
-  // Check if user has already referred someone for this job within 6 months
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const hasRecentReferral = referrals.some(
-    (r) =>
-      r.jobId === jobId &&
-      r.referrerId === user.id &&
-      r.submittedAt > sixMonthsAgo
-  );
-
-  const generateUniqueToken = () => {
-    return Math.random().toString(36).substr(2, 16) + Date.now().toString(36);
-  };
-
-  const addReferral = (
-    referralData: Omit<
-      Referral,
-      "id" | "submittedAt" | "updatedAt" | "referralCode" | "trackingToken"
-    >
-  ) => {
-    const trackingToken = generateUniqueToken();
-    const newReferral: Referral = {
-      ...referralData,
-      id: Math.random().toString(36).substr(2, 9),
-      submittedAt: new Date(),
-      updatedAt: new Date(),
-      referralCode: `REF-${Math.random()
-        .toString(36)
-        .substr(2, 6)
-        .toUpperCase()}`,
-      trackingToken,
-    };
-    setReferrals((prev) => [...prev, newReferral]);
-    return trackingToken;
-  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -158,7 +88,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
         try {
           const formData = new FormData();
           formData.append("resume", file);
-            
+
           const response = await sendResume(formData).unwrap();
           if (response && response.id) {
             setSuccessMessage("Resume uploaded successfully");
@@ -167,6 +97,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           }
         } catch (error) {
           setErrorMessage("Failed to upload resume. Please try again.");
+          console.error("Resume upload error:", error);
         }
       } else {
         setErrorMessage("Please upload a PDF or Word document.");
@@ -175,67 +106,62 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setErrorMessage(null);
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null); // Clear previous success message
 
-  try {
-    // Prepare the payload in the required format
-    const payload = {
-      referrerId: user.id,
-      referred: {
-        person: {
-          name: formData.candidateName,
-          phone: formData.candidatePhone,
-          email: formData.candidateEmail,
+    if (!resumeId) {
+      setErrorMessage("Please upload a resume.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Prepare the payload in the required format
+      const payload = {
+        referrerId: Number(user.id), // Ensure referrerId is a number if your API expects it
+        referred: {
+          person: {
+            name: formData.candidateName,
+            phone: formData.candidatePhone,
+            email: formData.candidateEmail,
+          },
+          yearsOfExperience: Number(formData.experience),
         },
-        yearsOfExperience: Number(formData.experience),
-      },
-      jobPostingId: job.id,
-      resumeId:resumeId
-    };
+        jobPostingId: Number(job.id), // Ensure jobPostingId is a number
+        resumeId: Number(resumeId),
+      };
 
-    // TODO: Replace this with your actual API call
-    // await submitReferral(payload);
-     // Generate tracking link
-      const link = `${window.location.origin}/track/${trackingToken}`;
+      // Call the createReferral mutation
+      const result = await createReferral(payload).unwrap();
+
+      const trackingToken = result?.id;
+
+      // Generate tracking link
+      const link = `${window.location.origin}/candidate/${trackingToken}`;
       setTrackingLink(link);
 
-    setSuccessMessage("Referral submitted successfully!");
-    setFormData({
-      candidateName: "",
-      candidateEmail: "",
-      candidatePhone: "",
-      experience: 0,
-      resume: 0,
-      notes: "",
-    });
-  } catch (error) {
-    setErrorMessage("Failed to submit referral. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-     
-
-  if (hasRecentReferral) {
-    return (
-      <div className="text-center py-8">
-        <X className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Cannot Submit Referral
-        </h3>
-        <p className="text-gray-600 mb-6">
-          You have already referred someone for this position within the last 6
-          months.
-        </p>
-        <Button variant="outline" onClick={onCancel}>
-          Back to Jobs
-        </Button>
-      </div>
-    );
-  }
+      setSuccessMessage("Referral submitted successfully!");
+      // Clear the form after successful submission
+      setFormData({
+        candidateName: "",
+        candidateEmail: "",
+        candidatePhone: "",
+        experience: 0,
+        resume: 0, // Resetting this, but consider removing it from formData
+        notes: "",
+      });
+      setResumeFile(null); // Clear the uploaded resume file
+    } catch (error: any) {
+      // Show backend error if available
+      setErrorMessage(
+        error?.data?.message || "Failed to submit referral. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (trackingLink) {
     return (
@@ -287,7 +213,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
             <Button
               onClick={() => {
                 setTrackingLink(null);
-                onCancel?.();
+                onCancel?.(); // Go back to jobs or a success message
               }}
             >
               Submit Another Referral
@@ -369,22 +295,19 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
               }
               required
             />
-            
           </div>
           <div className="space-y-2 ">
-            <Label htmlFor="experience">Experience</Label>
+            <Label htmlFor="experience">Years of Experience</Label>
             <Input
               id="experience"
-              type="tel"
+              type="number" // Changed to number for years of experience
               value={formData.experience}
               onChange={(e) =>
-                setFormData({ ...formData,  experience:Number(e.target.value) })
+                setFormData({ ...formData, experience: Number(e.target.value) })
               }
-              required
+              min="0" // Assuming experience can't be negative
             />
-            
           </div>
-          
         </div>
 
         <div className="space-y-2">
@@ -400,7 +323,10 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setResumeFile(null)}
+                  onClick={() => {
+                    setResumeFile(null);
+                    setResumeId(null); // Also clear resumeId
+                  }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -467,7 +393,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !resumeId}>
             {loading ? "Submitting..." : "Submit Referral"}
           </Button>
         </div>
