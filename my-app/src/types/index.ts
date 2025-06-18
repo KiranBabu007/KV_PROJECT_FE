@@ -33,16 +33,7 @@ export interface Job {
   bonusForReferral: number;
 }
 
-// export interface Notification {
-//   id: string;
-//   userId: string;
-//   title: string;
-//   message: string;
-//   type: 'referral' | 'bonus' | 'interview' | 'status_update' | 'job_update';
-//   read: boolean;
-//   createdAt: Date;
-//   relatedId?: string;
-// }
+
 
 export interface Notification {
   id: string;
@@ -88,6 +79,8 @@ export interface Referral {
   referralCode: string;
   bonusEligible: boolean;
   bonusPaid: boolean;
+  resumeId?: string;
+  bonusAmount?: number;
   trackingToken: string;
   createdAt: string;
   deletedAt: string | null;
@@ -174,4 +167,14 @@ export interface APIReferral {
   resume: {
     id: number;
   } | null;
+}
+
+export const enum ReferralStatus {
+    REFERRAL_SUBMITTED = "Referral Submitted",
+    REFERRAL_UNDER_REVIEW = "Referral Under Review",
+    REFERRAL_ACCEPTED = "Referral Accepted",
+    INTERVIEW_ROUND_1 = "Interviews Round 1",
+    INTERVIEWS_ROUND_2 = "Interview Round 2",
+    ACCEPTED = "Accepted",
+    REJECTED = "Rejected"
 }
