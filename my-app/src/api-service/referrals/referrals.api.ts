@@ -82,6 +82,25 @@ export const referralApi = baseApi.injectEndpoints({
         { type: "Referral", id: `EMPLOYEE-${employeeId}` },
       ],
     }),
+
+    // Convert candidate to employee
+    convertCandidateToEmployee: builder.mutation<
+      void,
+      {
+        referralId: number;
+        joiningDate: string;
+      }
+    >({
+      query: ({ referralId, joiningDate }) => ({
+        url: `/referral/${referralId}/convert`,
+        method: "POST",
+        body: { joiningDate },
+      }),
+      invalidatesTags: (result, error, { referralId }) => [
+        { type: "Referral", id: referralId },
+        "Referral",
+      ],
+    }),
   }),
 });
 
@@ -92,4 +111,5 @@ export const {
   useUpdateReferralStatusMutation,
   useGetReferralResponseQuery,
   useGetEmployeeReferralsQuery,
+  useConvertCandidateToEmployeeMutation, // Add this export
 } = referralApi;

@@ -55,3 +55,65 @@ export interface Bonus {
   triggerDate: string;
   referral: Referral;
 }
+
+export interface APIReferral {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  currentRound: number;
+  status: string;
+  jobPosting: {
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: null;
+    title: string;
+    description: string;
+    skills: string;
+    location: string;
+    numOfPositions: number;
+    remainingPositions: number;
+    experience: number;
+    salary: number;
+    bonusForReferral: number;
+  };
+  referrer: {
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: null;
+    name: string;
+    phone: string;
+    email: string;
+    role: string;
+    employee: {
+      id: number;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: null;
+      joiningDate: string;
+      password: string;
+    };
+  };
+  referred: {
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: null;
+    name: string;
+    phone: string;
+    email: string;
+    role: string;
+    candidate: {
+      id: number;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: null;
+      yearsOfExperience: number;
+    };
+  };
+  resume: {
+    url: string;
+  } | null;
+}
