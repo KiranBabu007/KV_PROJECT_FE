@@ -46,3 +46,33 @@ export interface Bonus {
   bonusStatus: "PENDING" | "SETTLED"; // add more statuses if needed
   triggerDate: string;
 }
+
+export interface Referrer{
+   id: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    name: string;
+    phone: string;
+    email: string;
+    role: string;
+    employee: {
+      id: number;
+      joiningDate: string;
+      password: string;
+    };
+}
+
+export interface Referral {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  currentRound: number;
+  status: string;
+  jobPosting: JobPosting
+  referrer: Referrer,
+  referred: Referred
+  
+  resume: any; // or specify the type if you know it
+}

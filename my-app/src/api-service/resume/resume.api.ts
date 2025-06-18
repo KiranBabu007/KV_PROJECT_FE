@@ -13,7 +13,7 @@ export const resumeApi = baseApi.injectEndpoints({
 
     sendResume: builder.mutation<{ id: string }, FormData>({
       query: (formData) => ({
-        url: "/employee",
+        url: "/resume",
         method: "POST",
         body: formData,
       }),
