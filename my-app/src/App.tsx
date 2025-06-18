@@ -18,19 +18,11 @@ import { jwtDecode } from "jwt-decode";
 
 // Helper to decode token
 
-
 function App() {
-  
   //  const decodedUser = getUserDetails();
   //   if (decodedUser) {
   //     setUser(decodedUser);
   //   }
-
-  
-
-
-
-  
 
   const [setAsRead] = useMarkasReadMutation();
 
@@ -41,18 +33,17 @@ function App() {
     } catch (error) {
       console.error("Failed to mark notification as read", error);
     }
-  };    // Adjust path
+  }; // Adjust path
 
   const mapJWTToUser = (jwt: JWTUser): User => {
-  return {
-    id: jwt.personId.toString(),       // Convert number to string
-    name: jwt.personName,
-    email: jwt.email,
-    role: jwt.role.toLowerCase(),      // Optional: normalize to lowercase
-    avatar: jwt.personName.charAt(0),  // Optional: first letter as avatar
+    return {
+      id: jwt.personId.toString(), // Convert number to string
+      name: jwt.personName,
+      email: jwt.email,
+      role: jwt.role.toLowerCase(), // Optional: normalize to lowercase
+      avatar: jwt.personName.charAt(0), // Optional: first letter as avatar
+    };
   };
-};
-
 
   const router = createBrowserRouter([
     {
@@ -75,10 +66,7 @@ function App() {
     {
       path: "/admin",
       element: (
-        <Layout
-       
-          markNotificationRead={markNotificationRead}
-        >
+        <Layout markNotificationRead={markNotificationRead}>
           <Admin />
         </Layout>
       ),
@@ -86,21 +74,15 @@ function App() {
     {
       path: "/employee",
       element: (
-        <Layout
-      
-          markNotificationRead={markNotificationRead}
-        >
-          <EmployeeDashboard  />
+        <Layout markNotificationRead={markNotificationRead}>
+          <EmployeeDashboard />
         </Layout>
       ),
     },
     {
       path: "/job/:jobId",
       element: (
-        <Layout
-        
-          markNotificationRead={markNotificationRead}
-        >
+        <Layout markNotificationRead={markNotificationRead}>
           <JobDetails />
         </Layout>
       ),
@@ -109,7 +91,7 @@ function App() {
 
   return (
     <>
-        <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </>
   );
 }

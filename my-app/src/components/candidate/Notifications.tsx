@@ -23,6 +23,8 @@ type NotificationType = {
 
 export default function Notifications({ id }: { id: string }) {
   const { data } = useGetReferralNotificationsQuery(id ? id : skipToken);
+  console.log("🚀 ~ Notifications ~ data:", data);
+
   const [setAsRead] = useSetAsReadMutation();
 
   const [localReadIds, setLocalReadIds] = useState<Set<number>>(new Set());
@@ -39,7 +41,14 @@ export default function Notifications({ id }: { id: string }) {
     }));
 
     // Unread notifications first
-    return mapped.sort((a, b) => Number(a.read) - Number(b.read));
+    return mapped.sort((a, b) => {
+      // Unread notifications first
+      if (a.read !== b.read) {
+        return Number(a.read) - Number(b.read);
+      }
+      // Then by date, latest on top
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
   }, [data, localReadIds]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

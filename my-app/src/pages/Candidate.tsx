@@ -19,6 +19,7 @@ import ReferralTimeline from "@/components/candidate/ReferralTimeline";
 import ReferralDetails from "@/components/candidate/ReferralDetails";
 import type { ReferralsResponse } from "@/api-service/candidate/types";
 import ReferralLoadingSkeleton from "@/components/candidate/ReferralLoadingSkeleton";
+import NotFound from "@/components/candidate/NotFound";
 
 // Referral Data (Static)
 // const referralData = {
@@ -112,6 +113,7 @@ function buildFakeDatesFromHistories(
   const stepToDateMap: Record<string, string> = {};
 
   // Step 1: Convert raw status -> formatted date
+  console.log("Data histories", histories);
   for (const h of histories) {
     if (!stepToDateMap[h.status]) {
       const formatted = new Date(h.createdAt).toLocaleDateString("en-US", {
@@ -254,7 +256,7 @@ export default function Index() {
     ? buildReferralData(data)
     : null;
   if (!referralData) {
-    return <div>Referral Data not found or an error occurred.</div>;
+    return <NotFound />;
   }
 
   const fakeDates = data
@@ -333,7 +335,7 @@ export default function Index() {
                   <Badge
                     className={`${getStatusColor(
                       referralData.failed ? "failed" : "current"
-                    )} px-3 py-1 text-sm font-semibold`}
+                    )} px-4 py-2 text-lg font-bold`}
                   >
                     {referralData.failed ? "Failed" : displayStatus}
                   </Badge>
@@ -344,10 +346,10 @@ export default function Index() {
                 <Progress value={progress} className="h-2 mb-4" />
                 {!referralData.failed && (
                   <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-5 transition-colors duration-300">
-                    <p className="text-base font-medium text-blue-900 mb-1">
+                    <p className="text-sm font-medium text-blue-800 mb-1">
                       Next Step
                     </p>
-                    <p className="text-blue-800">{nextStep}</p>
+                    <p className="text-blue-700 text-sm">{nextStep}</p>
                   </div>
                 )}
               </CardContent>

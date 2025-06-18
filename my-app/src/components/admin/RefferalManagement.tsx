@@ -462,6 +462,11 @@ const getStatusIcon = (status: string) => {
                               <Award className="h-4 w-4 mr-2 text-blue-600" />
                               Status Management
                             </label>
+                            <Badge
+                              className={`${getStatusColor(
+                                referral.status
+                              )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
+                            >
 
                             <Badge
                               className={`${getStatusColor(

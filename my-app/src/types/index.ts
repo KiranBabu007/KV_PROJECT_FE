@@ -1,10 +1,10 @@
 export interface User {
-  id: string ;
+  id: string;
   name: string;
   email: string;
   role: string;
   avatar?: string;
-} 
+}
 
 export interface JWTUser {
   email: string;
@@ -13,10 +13,9 @@ export interface JWTUser {
   iat: number;
   personId: number;
   personName: string;
-  role: 'EMPLOYEE' | 'ADMIN'; // Add more roles if needed
+  role: "EMPLOYEE" | "ADMIN"; // Add more roles if needed
   avatar?: string;
 }
-
 
 export interface Job {
   id: number;
@@ -34,7 +33,6 @@ export interface Job {
   bonusForReferral: number;
 }
 
-
 // export interface Notification {
 //   id: string;
 //   userId: string;
@@ -50,19 +48,49 @@ export interface Notification {
   id: string;
   title: string;
   content: string;
-  status: 'READ' | 'UNREAD';
+  status: "READ" | "UNREAD";
   createdAt: Date;
 }
 
-
-
-export interface Referral {
+export interface APIReferral {
   id: number;
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
-  currentRound: number;
   status: string;
+  jobPosting: {
+    id: number;
+    title: string;
+    bonusForReferral: boolean;
+  };
+  referrer: {
+    id: number;
+    name: string;
+  };
+  referred: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
+
+export interface Referral {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  referrerId: string;
+  referrerName: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  status: string;
+  submittedAt: string;
+  updatedAt: string;
+  referralCode: string;
+  bonusEligible: boolean;
+  bonusPaid: boolean;
+  trackingToken: string;
+  createdAt: string;
+  deletedAt: string | null;
 }
 
 export interface Bonus {
@@ -79,12 +107,12 @@ export interface Bonus {
 export interface MyJwtPayload {
   personId: number;
   employeeId: number;
-  name?:string
+  name?: string;
   email: string;
   role: string;
   iat: number;
   exp: number;
-};
+}
 
 export interface APIReferral {
   id: number;
@@ -144,6 +172,6 @@ export interface APIReferral {
     };
   };
   resume: {
-    id:number;
+    id: number;
   } | null;
 }
