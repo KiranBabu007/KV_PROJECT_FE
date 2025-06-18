@@ -120,7 +120,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
     try {
       // Prepare the payload in the required format
       const payload = {
-        referrerId: Number(user.id), // Ensure referrerId is a number if your API expects it
+        referrerId: Number(user.employeeId), // Ensure referrerId is a number if your API expects it
         referred: {
           person: {
             name: formData.candidateName,

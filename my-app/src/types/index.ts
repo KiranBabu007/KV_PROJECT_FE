@@ -1,9 +1,11 @@
 export interface User {
-  id: string;
+  employeeId: string;
   name: string;
   email: string;
   role: string;
-  avatar?: string;
+  personId?: string;
+  personName:string;
+
 }
 
 export interface JWTUser {

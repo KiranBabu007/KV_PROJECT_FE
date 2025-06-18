@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,15 @@ const Login = () => {
     iat: number;
     exp: number;
   };
-
+   
+    useEffect(() => {
+        const token=localStorage.getItem("token")
+        console.log(token)
+        if(!token)
+        navigate("/login")
+      }
+      
+    , []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -46,6 +54,7 @@ const Login = () => {
       } else if (role === "EMPLOYEE") {
         navigate("/employee");
       }
+     
     } catch (err) {
       console.error("Login failed:", err);
       setError("Login failed. Please check your credentials.");
