@@ -3,5 +3,5 @@ export interface ResumePayload {
 }
 
 export interface ResumeResponse{
-    id:number
+    file:File
 }

@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import type { Job, Referral, Bonus } from "@/types";
+import type { Job, Referral, Bonus, APIReferral } from "@/types";
 import ReferralManagement from "@/components/admin/RefferalManagement";
 import JobList from "@/components/admin/JobList";
 import JobForm from "@/components/admin/JobForm";

@@ -18,10 +18,11 @@ import {
 import JobBrowser from "./jobBrowser";
 import ReferralForm from "./referralForm";
 import MyReferrals from "./myReferral";
-import type { Job, Referral, User } from "@/types";
+import { type Job, type MyJwtPayload, type Referral, type User } from "@/types";
 import { useGetJobsListQuery } from '@/api-service/job/job.api';
 import { useGetEmployeeBonusesQuery } from '@/api-service/bonus/bonus.api';
 import { format } from "date-fns";
+import { jwtDecode } from "jwt-decode";
 
 // Local mock data
 const mockReferrals: Referral[] = [
@@ -44,13 +45,18 @@ const mockReferrals: Referral[] = [
   },
 ];
 
-interface EmployeeDashboardProps {
-  user: User;
-}
 
-const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
+
+const EmployeeDashboard = () => {
   const { data: jobs = [], isLoading: jobsLoading } = useGetJobsListQuery({});
+ 
   
+  const decoded=localStorage.getItem("token")
+  if(!decoded){
+      return
+  }
+
+  const user=jwtDecode<MyJwtPayload>(decoded)
   const { data: bonuses = [], isLoading: bonusesLoading } = useGetEmployeeBonusesQuery("1");
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<
@@ -102,6 +108,8 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
     },
   ];
 
+  console.log("USER:",user)
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Enhanced Header Section */}
@@ -120,7 +128,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({ user }) => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  Welcome back, {user?.name}!
+                  Welcome back, {user?.personName}!
                 </h1>
                 <p className="text-blue-200 text-lg">
                   Discover opportunities and grow your network

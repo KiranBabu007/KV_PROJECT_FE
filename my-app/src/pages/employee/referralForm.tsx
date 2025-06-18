@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, X, Copy, Check } from "lucide-react";
 import type { Job, Referral, User } from "@/types";
 import {
-  useGetResumeQuery, // This seems unused in the provided code, consider removing if truly not used
   useSendResumeMutation,
 } from "@/api-service/resume/resume.api";
 
