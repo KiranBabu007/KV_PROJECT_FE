@@ -7,20 +7,19 @@ export interface User {
 } 
 
 export interface Job {
-  id: string;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   title: string;
   description: string;
-  requirements: string[];
+  skills: string;
   location: string;
-  salary: string;
-  experience: string;
-  openPositions: number;
-  totalPositions: number;
-  createdAt: Date;
-  updatedAt: Date;
-  status?: 'active' | 'closed';
-  bonusForRefferal:number
-
+  numOfPositions: number;
+  remainingPositions: number;
+  experience: number;
+  salary: number;
+  bonusForReferral: number;
 }
 
 
@@ -56,5 +55,3 @@ export interface Bonus {
   triggerDate: string;
   referral: Referral;
 }
-
-
