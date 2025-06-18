@@ -53,9 +53,9 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
         salary: salaryNumber,
         experience: experienceNumber,
         numOfPositions: job.totalPositions, // Assuming totalPositions is the correct field for the number of positions
-        bonusForReferral: job.bonusForReferral,
+        bonusForReferral: job.bonusForRefferal,
       });
-      setRequirements(job.requirements);
+      setRequirements(job.requirements || []);
     }
   }, [job, mode]);
 
@@ -72,14 +72,17 @@ const JobForm: React.FC<JobFormProps> = ({ onCancel, job, mode = 'create', onSub
     // If in edit mode, add the job ID to the data
     if (mode === 'edit' && job) {
       onSubmit({ id: job.id, ...jobDataToSubmit });
+       if (onCancel) onCancel();
     } else {
+     
       onSubmit(jobDataToSubmit);
+       if (onCancel) onCancel();
     }
   };
 
   const addRequirement = () => {
     if (newRequirement.trim() && !requirements.includes(newRequirement.trim())) {
-      setRequirements([...requirements, newRequirement.trim()]);
+      setRequirements([...requirements || [], newRequirement.trim()]);
       setNewRequirement('');
     }
   };
