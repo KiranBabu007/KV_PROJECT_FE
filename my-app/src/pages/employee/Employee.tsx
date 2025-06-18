@@ -57,6 +57,7 @@ const EmployeeDashboard = () => {
   }
 
   const user=jwtDecode<MyJwtPayload>(decoded)
+  
   const { data: bonuses = [], isLoading: bonusesLoading } = useGetEmployeeBonusesQuery("1");
   const [referrals] = useState<Referral[]>(mockReferrals);
   const [selectedJobForReferral, setSelectedJobForReferral] = useState<
