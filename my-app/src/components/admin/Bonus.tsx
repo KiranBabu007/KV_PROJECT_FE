@@ -37,7 +37,7 @@ const BonusManagement: React.FC = () => {
 	// Update calculations for stats
 	const totalBonusesDue =
 		bonuses?.reduce(
-			(sum, bonus) => (bonus.bonusStatus === 'PENDING' ? sum + (bonus.bonusAmount || 0) : sum),
+			(sum, bonus) => (bonus.bonusStatus === 'DUE' ? sum + (bonus.bonusAmount || 0) : sum),
 			0
 		) || 0;
 
@@ -165,7 +165,7 @@ const BonusManagement: React.FC = () => {
 								<div className="space-y-2">
 									<p className="text-sm font-medium text-gray-600">Bonuses Paid</p>
 									<p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-										₹0
+										{paidBonuses}
 									</p>
 									<div className="flex items-center text-xs text-gray-500">
 										<Award className="h-3 w-3 mr-1" />
