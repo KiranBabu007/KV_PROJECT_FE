@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Search, Calendar, User, Mail, Phone, FileText, Clock, Award, Users,Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { ReferralStatus, type APIReferral, type Referral } from '@/types';
