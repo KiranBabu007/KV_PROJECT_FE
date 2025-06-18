@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,45 +10,7 @@ import ReferralManagement from '@/components/admin/RefferalManagement';
 import JobList from '@/components/admin/JobList';
 import JobForm from '@/components/admin/JobForm';
 import BonusManagement from '@/components/admin/Bonus';
-
-// Local mock data
-const initialJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Senior Software Engineer',
-    description: 'We are looking for an experienced software engineer to join our team.',
-    requirements: ['React', 'TypeScript', '5+ years experience'],
-    location: 'San Francisco, CA',
-    
-    salary: '₹90,00,000 - ₹1,35,00,000',
-    experience: '5+ years',
-    openPositions: 2,
-    totalPositions: 3,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-    status: 'active',
-     numOfPositions: 3,
-    bonusForReferral: 5000,
-    skills: "AI/ML",
-  },
-  {
-    id: '2',
-    title: 'Product Manager',
-    description: 'Lead product strategy and development for our core platform.',
-    requirements: ['Product Management', 'Agile', '3+ years experience'],
-    location: 'New York, NY',
-    salary: '₹75,00,000 - ₹1,05,00,000',
-    experience: '3-5 years',
-    openPositions: 1,
-    totalPositions: 1,
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-20'),
-    status: 'active',
-     numOfPositions: 3,
-    bonusForReferral: 5000,
-    skills: "AI/ML",
-  }
-];
+import { useGetJobsListQuery, useAddJobMutation } from '@/api-service/job/job.api';
 
 const initialReferrals: Referral[] = [
   {
@@ -74,38 +35,26 @@ const initialBonuses: Bonus[] = [];
 
 const AdminDashboard: React.FC = () => {
   const [showJobForm, setShowJobForm] = useState(false);
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [creatingJob, setCreatingJob] = useState<Job | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>(initialReferrals);
   const [bonuses, setBonuses] = useState<Bonus[]>(initialBonuses);
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
+  // Fetch jobs from API
+  const { data: jobs = [], refetch } = useGetJobsListQuery({});
+  const [addJobMutation] = useAddJobMutation();
 
-  const addJob = (jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newJob: Job = {
-      ...jobData,
-      id: generateId(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    setJobs(prev => [...prev, newJob]);
-  };
+  // Add job handler
+const handleJobCreated = async (jobData: any) => {
+  try {
+    await addJobMutation(jobData).unwrap();
+    setShowJobForm(false);
+    refetch(); 
+  } catch (error) {
+    console.error("Error creating job:", error);
+  }
+};
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
-    setJobs(prev => prev.map(job => 
-      job.id === id ? { ...job, ...updates, updatedAt: new Date() } : job
-    ));
-  };
-
-  const deleteJob = (id: string) => {
-    setJobs(prev => prev.filter(job => job.id !== id));
-  };
-
-  const updateReferral = (id: string, updates: Partial<Referral>) => {
-    setReferrals(prev => prev.map(referral => 
-      referral.id === id ? { ...referral, ...updates, updatedAt: new Date() } : referral
-    ));
-  };
-
+  // Stats
   const activeJobs = jobs.filter(job => job.status === 'active').length;
   const totalReferrals = referrals.length;
   const pendingReferrals = referrals.filter(r => r.status === 'submitted' || r.status === 'under_review').length;
@@ -145,6 +94,12 @@ const AdminDashboard: React.FC = () => {
       trend: '+15%'
     }
   ];
+
+  // Open JobForm for create
+  const handleCreateJob = () => {
+    setCreatingJob(null);
+    setShowJobForm(true);
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -245,7 +200,7 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-gray-600 mt-1">Create and manage job opportunities</p>
                   </div>
                   <EnhancedButton 
-                    onClick={() => setShowJobForm(true)}
+                    onClick={handleCreateJob}
                     className="shadow-lg hover:shadow-xl"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -258,7 +213,10 @@ const AdminDashboard: React.FC = () => {
                 <CardContent className="border-t bg-gradient-to-br from-gray-50 to-white animate-scale-in">
                   <div className="pt-6">
                     <JobForm 
+                      onSubmit={handleJobCreated}
                       onCancel={() => setShowJobForm(false)} 
+                      mode='create'
+                      // job={creatingJob}
                     />
                   </div>
                 </CardContent>
@@ -266,7 +224,7 @@ const AdminDashboard: React.FC = () => {
             </Card>
             
             <div className="animate-slide-in-right" style={{ animationDelay: '200ms' }}>
-              <JobList />
+              <JobList jobs={jobs|| []}  />
             </div>
           </TabsContent>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
 import {
   MapPin,
   Users,
@@ -33,11 +32,14 @@ import {
 import { format } from "date-fns";
 import type { Job } from '@/types';
 import JobForm from "./JobForm";
-import { useAddJobMutation, useDeleteJobMutation, useGetJobsListQuery, usePatchJobMutation } from "@/api-service/job/job.api.ts";
+import { useAddJobMutation, useDeleteJobMutation, usePatchJobMutation } from "@/api-service/job/job.api.ts";
 
-const JobList: React.FC = () => {
-  const { data: jobsData, isLoading, error, refetch } = useGetJobsListQuery({});
-  const [jobs, setJobs] = useState<Job[]>([]);
+interface JobListProps {
+ 
+  jobs?: Job[];
+}
+
+const JobList: React.FC<JobListProps> = ({ jobs=[] }) => {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -50,27 +52,6 @@ const JobList: React.FC = () => {
   const [patchJobMutation] = usePatchJobMutation();
   const [deleteJobMutation] = useDeleteJobMutation();
 
-  useEffect(() => {
-    if (jobsData) {
-      const formattedJobs = jobsData.map((job: any) => ({
-        id: job.id.toString(),
-        title: job.title,
-        description: job.description,
-        requirements: job.skills ? job.skills.split(", ") : [],
-        location: job.location,
-        salary: `₹${(job.salary / 100000).toFixed(2)} LPA`,
-        experience: `${job.experience}+ years`,
-        openPositions: job.numOfPositions,
-        totalPositions: job.numOfPositions,
-        createdAt: new Date(job.createdAt),
-        updatedAt: new Date(job.updatedAt),
-        status: job.deletedAt ? "closed" : "active",
-        bonusForReferral: job.bonusForReferral,
-      }));
-      setJobs(formattedJobs);
-    }
-  }, [jobsData]);
-
   // Function to initiate delete (opens confirmation dialog)
   const handleDeleteClick = (id: string) => {
     setJobToDeleteId(id);
@@ -82,38 +63,29 @@ const JobList: React.FC = () => {
     if (jobToDeleteId) {
       try {
         await deleteJobMutation({ id: jobToDeleteId }).unwrap();
-        refetch(); // Refetch to update the list from the server
+        // Optionally, you can call a parent callback to remove the job from the parent state
+        // or refetch jobs in the parent
         console.log(`Job with ID ${jobToDeleteId} deleted successfully.`);
       } catch (deleteError) {
         console.error("Error deleting job:", deleteError);
-        // You might want to show a toast or error message here
       } finally {
-        setIsDeleteDialogOpen(false); // Close dialog regardless of success/failure
-        setJobToDeleteId(null); // Clear the ID
+        setIsDeleteDialogOpen(false);
+        setJobToDeleteId(null);
       }
     }
   };
 
   const handleJobFormSubmit = async (data: any) => {
-    console.log("Form Data received in handle handleJobFormSubmit:", data);
-
     try {
       if (data.id) {
         const { id, ...patch } = data;
         console.log("Patching job with ID:", id);
-        console.log("Patch data:", patch);
-
-        const result = await patchJobMutation({ id, ...patch }).unwrap();
-        console.log("Patch result:", result);
-
-        refetch();
+        await patchJobMutation({ id, ...patch }).unwrap();
         handleCloseEditDialog();
       } else {
         console.log("Creating new job");
         const result = await addJobMutation(data).unwrap();
-        console.log("Create result:", result);
-
-        refetch();
+        // onJobCreated(result); // Pass new job up to parent
       }
     } catch (error) {
       console.error("Error submitting job form:", error);
@@ -128,23 +100,17 @@ const JobList: React.FC = () => {
 
   const handleToggleStatus = async (job: Job) => {
     try {
-      console.log("Toggling status for job:", job.id);
       const newStatus = job.status === "active" ? "closed" : "active";
-
-      const result = await patchJobMutation({
+      await patchJobMutation({
         id: job.id,
         status: newStatus,
       }).unwrap();
-
-      console.log("Status toggle result:", result);
-      refetch();
     } catch (error) {
       console.error("Error toggling job status:", error);
     }
   };
 
   const handleEditJob = (job: Job) => {
-    console.log("Editing job:", job);
     setEditingJob(job);
     setIsEditDialogOpen(true);
   };
@@ -154,13 +120,8 @@ const JobList: React.FC = () => {
     setEditingJob(null);
   };
 
-  if (isLoading) {
+  if (!jobs) {
     return <div className="text-center py-8">Loading jobs...</div>;
-  }
-
-  if (error) {
-    console.error("Error loading jobs:", error);
-    return <div className="text-center py-8 text-red-600">Error loading jobs: {error.toString()}</div>;
   }
 
   return (
@@ -201,7 +162,6 @@ const JobList: React.FC = () => {
                       <MapPin className="h-4 w-4 text-blue-500" />
                       <span>{job.location}</span>
                     </span>
-
                     <span className="flex items-center space-x-1 bg-white/70 px-2 py-1 rounded-lg">
                       <DollarSign className="h-4 w-4 text-purple-500" />
                       <span>{job.salary}</span>
@@ -237,14 +197,13 @@ const JobList: React.FC = () => {
                   {job.description}
                 </p>
               </div>
-
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900 flex items-center">
                   <Target className="h-4 w-4 mr-2 text-blue-500" />
                   Requirements:
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {job.requirements.map((req, reqIndex) => (
+                 {(job.requirements || []).map((req, reqIndex) => (
                     <Badge
                       key={`${req}-${reqIndex}`}
                       variant="secondary"
@@ -256,7 +215,6 @@ const JobList: React.FC = () => {
                   ))}
                 </div>
               </div>
-
               <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                 <div className="text-sm text-gray-600 bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-lg">
                   <span className="font-medium text-green-800">
@@ -280,7 +238,6 @@ const JobList: React.FC = () => {
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  {/* Changed onClick to open dialog */}
                   <Button
                     variant="outline"
                     size="sm"
