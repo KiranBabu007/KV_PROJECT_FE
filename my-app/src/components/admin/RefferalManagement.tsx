@@ -66,27 +66,53 @@ const ReferralManagement: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'submitted': return 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-200';
-      case 'under_review': return 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border-yellow-200';
-      case 'interview_scheduled': return 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-200';
-      case 'accepted': return 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-200';
-      case 'declined': return 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-200';
-      default: return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const enum ReferralStatus {
+    REFERRAL_SUBMITTED = "Referral Submitted",
+    REFERRAL_UNDER_REVIEW = "Referral Under Review",
+    REFERRAL_ACCEPTED = "Referral Accepted",
+    INTERVIEW_ROUND_1 = "Interviews Round 1",
+    INTERVIEWS_ROUND_2 = "Interview Round 2",
+    ACCEPTED = "Accepted",
+    REJECTED = "Rejected"
+}
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'submitted': return <Clock className="h-3 w-3" />;
-      case 'under_review': return <Search className="h-3 w-3" />;
-      case 'interview_scheduled': return <Calendar className="h-3 w-3" />;
-      case 'accepted': return <Award className="h-3 w-3" />;
-      case 'declined': return <User className="h-3 w-3" />;
-      default: return <Clock className="h-3 w-3" />;
-    }
-  };
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case ReferralStatus.REFERRAL_SUBMITTED: 
+      return 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-200';
+    case ReferralStatus.REFERRAL_UNDER_REVIEW: 
+      return 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border-yellow-200';
+    case ReferralStatus.REFERRAL_ACCEPTED:
+    case ReferralStatus.ACCEPTED:
+      return 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-200';
+    case ReferralStatus.INTERVIEW_ROUND_1:
+    case ReferralStatus.INTERVIEWS_ROUND_2:
+      return 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 border-purple-200';
+    case ReferralStatus.REJECTED:
+      return 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-200';
+    default:
+      return 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case ReferralStatus.REFERRAL_SUBMITTED:
+      return <Clock className="h-3 w-3" />;
+    case ReferralStatus.REFERRAL_UNDER_REVIEW:
+      return <Search className="h-3 w-3" />;
+    case ReferralStatus.REFERRAL_ACCEPTED:
+    case ReferralStatus.ACCEPTED:
+      return <Award className="h-3 w-3" />;
+    case ReferralStatus.INTERVIEW_ROUND_1:
+    case ReferralStatus.INTERVIEWS_ROUND_2:
+      return <Calendar className="h-3 w-3" />;
+    case ReferralStatus.REJECTED:
+      return <User className="h-3 w-3" />;
+    default:
+      return <Clock className="h-3 w-3" />;
+  }
+};
 
   const searchReferrals = (query: string): Referral[] => {
     const lowercaseQuery = query.toLowerCase();
@@ -319,38 +345,50 @@ const ReferralManagement: React.FC = () => {
                             <SelectTrigger className="bg-white border-2 border-gray-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-200 shadow-2xl rounded-lg">
-                              <SelectItem value="submitted" className="hover:bg-blue-50 cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="h-4 w-4 text-blue-600" />
-                                  <span>📋 Submitted</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="under_review" className="hover:bg-yellow-50 cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                  <Search className="h-4 w-4 text-yellow-600" />
-                                  <span>🔍 Under Review</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="interview_scheduled" className="hover:bg-purple-50 cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                  <Calendar className="h-4 w-4 text-purple-600" />
-                                  <span>📅 Interview Scheduled</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="accepted" className="hover:bg-green-50 cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                  <Award className="h-4 w-4 text-green-600" />
-                                  <span>✅ Accepted</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="declined" className="hover:bg-red-50 cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                  <User className="h-4 w-4 text-red-600" />
-                                  <span>❌ Declined</span>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
+                           <SelectContent className="bg-white border-gray-200 shadow-2xl rounded-lg">
+    <SelectItem value={ReferralStatus.REFERRAL_SUBMITTED} className="hover:bg-blue-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Clock className="h-4 w-4 text-blue-600" />
+        <span>📋 {ReferralStatus.REFERRAL_SUBMITTED}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.REFERRAL_UNDER_REVIEW} className="hover:bg-yellow-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Search className="h-4 w-4 text-yellow-600" />
+        <span>🔍 {ReferralStatus.REFERRAL_UNDER_REVIEW}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.REFERRAL_ACCEPTED} className="hover:bg-green-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Award className="h-4 w-4 text-green-600" />
+        <span>✅ {ReferralStatus.REFERRAL_ACCEPTED}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.INTERVIEW_ROUND_1} className="hover:bg-purple-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Calendar className="h-4 w-4 text-purple-600" />
+        <span>📅 {ReferralStatus.INTERVIEW_ROUND_1}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.INTERVIEWS_ROUND_2} className="hover:bg-indigo-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Calendar className="h-4 w-4 text-indigo-600" />
+        <span>📅 {ReferralStatus.INTERVIEWS_ROUND_2}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.ACCEPTED} className="hover:bg-green-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <Award className="h-4 w-4 text-green-600" />
+        <span>✅ {ReferralStatus.ACCEPTED}</span>
+      </div>
+    </SelectItem>
+    <SelectItem value={ReferralStatus.REJECTED} className="hover:bg-red-50 cursor-pointer">
+      <div className="flex items-center space-x-2">
+        <User className="h-4 w-4 text-red-600" />
+        <span>❌ {ReferralStatus.REJECTED}</span>
+      </div>
+    </SelectItem>
+</SelectContent>
                           </Select>
                         </div>
 
