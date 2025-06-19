@@ -112,7 +112,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
     (new Date().getTime() - new Date(job.createdAt).getTime()) /
       (1000 * 3600 * 24)
   );
-  const filledPositions = job.numOfPositions - job.remainingPositions;
+  const filledPositions = job.filledPositions || 0;
+  const remainingPositions = job.numOfPositions - filledPositions;
   const totalReferrals = job.referrals?.length || 0;
 
   // Parse skills from comma-separated string
@@ -207,7 +208,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
           <div className="mb-8 animate-slide-in-right">
             <Button
               variant="outline"
-              onClick={() => navigate("/employee")}
+              onClick={() => navigate("/")}
               className="group flex items-center bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
             >
               <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" />
@@ -246,19 +247,19 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
               <div className="flex flex-col items-end space-y-3">
                 <Badge
                   className={`${
-                    job.remainingPositions > 0
+                    remainingPositions > 0
                       ? "bg-green-500/20 text-green-100 border-green-400"
                       : "bg-gray-500/20 text-gray-100 border-gray-400"
                   } backdrop-blur-sm animate-pulse`}
                 >
-                  {job.remainingPositions > 0 ? "Active" : "Filled"}
+                  {remainingPositions > 0 ? "Active" : "Filled"}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="bg-white/20 text-white border-white/30 backdrop-blur-sm"
                 >
                   <Users className="h-3 w-3 mr-1" />
-                  {job.remainingPositions} positions available
+                  {remainingPositions} positions available
                 </Badge>
               </div>
             </div>
@@ -415,15 +416,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
                 Share Job Posting
               </Button>
 
-              {isAuthenticated && (
-                <Button
-                  onClick={() => setIsReferralFormOpen(true)}
-                  className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
-                >
-                  <UserPlus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                  Refer Someone
-                </Button>
-              )}
+           
             </div>
           </CardContent>
         </Card>

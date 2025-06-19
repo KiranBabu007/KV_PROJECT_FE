@@ -19,8 +19,13 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ jobs, isLoading, onReferClick }
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
 
-  const activeJobs = jobs.filter((job) => job.deletedAt === null);
+  // First, update the filtering logic to exclude jobs with no positions
+  const activeJobs = jobs.filter((job) => 
+    job.deletedAt === null && 
+    (job.numOfPositions - job.filledPositions) > 0
+  );
 
+  // Update the filtered jobs logic to include this check
   const filteredJobs = activeJobs.filter(job => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -30,7 +35,10 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ jobs, isLoading, onReferClick }
     const matchesLocation =
       locationFilter === 'all' || job.location === locationFilter;
 
-    return matchesSearch && matchesLocation;
+    const hasPositionsAvailable = 
+      (job.numOfPositions - job.filledPositions) > 0;
+
+    return matchesSearch && matchesLocation && hasPositionsAvailable;
   });
 
   const departments = [...new Set(activeJobs.map(job => job.location))];
@@ -134,7 +142,7 @@ const JobBrowser: React.FC<JobBrowserProps> = ({ jobs, isLoading, onReferClick }
                   <div className="flex flex-col items-end space-y-3">
                     <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200 shadow-sm font-medium px-3 py-1">
                       <Users className="h-3 w-3 mr-1" />
-                      {job.numOfPositions} positions
+                      {job.numOfPositions-job.filledPositions} positions remaining 
                     </Badge>
                     <div className="flex space-x-2">
                       <Button

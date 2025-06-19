@@ -191,7 +191,7 @@ const JobList: React.FC<JobListProps> = ({ jobs = [] }) => {
                   </Badge> */}
                   <Badge className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 border-indigo-200 shadow-sm font-medium px-3 py-1">
                     <Users className="h-3 w-3 mr-1" />
-                    {job.numOfPositions-job.remainingPositions}/{job.numOfPositions}
+                    {job.filledPositions}/{job.numOfPositions}
                   </Badge>
                 </div>
               </div>
@@ -225,7 +225,7 @@ const JobList: React.FC<JobListProps> = ({ jobs = [] }) => {
               <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                 <div className="text-sm text-gray-600 bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-lg">
                   <span className="font-medium text-green-800">
-                    {job.remainingPositions} positions available
+                    {job.numOfPositions-job.filledPositions} positions available
                   </span>
                 </div>
                 <div className="flex space-x-2">

@@ -57,10 +57,7 @@ export const referralApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: { status },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Referral", id },
-        "Referral",
-      ],
+      invalidatesTags: ["Referral"],
     }),
 
     // Get formatted response
@@ -69,7 +66,7 @@ export const referralApi = baseApi.injectEndpoints({
         url: `/referral/response/${id}`,
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Referral", id }],
+      providesTags: ["Referral"],
     }),
 
     // Get employee referrals
