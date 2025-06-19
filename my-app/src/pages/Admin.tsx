@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { type Job, type Referral, type Bonus, type APIReferral, ReferralStatus } from "@/types";
+import type { Job, Referral, Bonus, APIReferral } from "@/types";
 import ReferralManagement from "@/components/admin/RefferalManagement";
 import JobList from "@/components/admin/JobList";
 import JobForm from "@/components/admin/JobForm";
@@ -93,13 +93,9 @@ const AdminDashboard: React.FC = () => {
   const activeJobs = jobs.length;
   const totalReferrals = referrals.length;
 
-//   const pendingReferrals = referrals.filter(
-//   (r) =>
-//     r.status !== ReferralStatus.ACCEPTED &&
-//     r.status !== ReferralStatus.REJECTED
-// ).length;
-
-
+  const acceptedReferrals = referrals.filter(
+  (r) => r.status === "accepted" || r.status === "referral_accepted"
+).length;
   
   const totalBonusAmount = bonuses.reduce(
     (sum, bonus) => (bonus.status === "SETTLED" ? sum + bonus.amount : sum),
@@ -111,10 +107,6 @@ const AdminDashboard: React.FC = () => {
   );
   const eligibleBonuses = bonuses.filter((b) => b.status === "DUE").length;
   const paidBonuses = bonuses.filter((b) => b.status === "SETTLED").length;
-
-  const acceptedReferrals = referrals.filter(
-  (r) => r.status === ReferralStatus.ACCEPTED
-).length;
 
   const stats = [
     {
@@ -143,12 +135,13 @@ const AdminDashboard: React.FC = () => {
       bgColor: "bg-gradient-to-br from-green-50 to-green-100",
      
     },
-   {
-    title: "Accepted Referrals",
-    value: acceptedReferrals,
-    icon: TrendingUp,
-    color: "text-green-600",
-    bgColor: "bg-gradient-to-br from-green-50 to-green-100",
+ {
+    title: "Total Referrals",
+    value: totalReferrals,
+    icon: Users,
+    color: "text-indigo-600",
+    bgColor: "bg-gradient-to-br from-indigo-50 to-indigo-100",
+    borderColor: "border-indigo-200"
   },
   ];
 
