@@ -88,6 +88,7 @@ const ReferralManagement: React.FC = () => {
             deletedAt: ref.deletedAt ?? null,
             resumeScore: ref.resume?.resumeScore,
             skills: ref.resume?.skills,
+
           })
         ),
     [referralsData]
@@ -419,8 +420,10 @@ const ReferralManagement: React.FC = () => {
                               <Button
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
+
                                   e.stopPropagation();
                                   downloadResume(Number(referral.resumeId));
+
                                 }}
                               >
                                 Download Resume

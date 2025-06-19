@@ -43,24 +43,24 @@ const JobForm: React.FC<JobFormProps> = ({
       // Let's assume the backend 'salary' field is directly in the numerical value (e.g., 9000000).
       // If job.salary is a string like "₹90,00,000 - ₹1,35,00,000", you'll need more robust parsing.
       // For now, assuming job.salary from the API (via useGetJobsListQuery) is a number.
-      const salaryNumber =
-        typeof job.salary === "string"
-          ? parseInt(job.salary.replace(/[^0-9]/g, ""), 10) || 0
-          : job.salary;
+      // const salaryNumber =
+      //   typeof job.salary === "string"
+      //     ? parseInt(job.salary.replace(/[^0-9]/g, ""), 10) || 0
+      //     : job.salary;
 
-      const experienceNumber =
-        typeof job.experience === "string"
-          ? parseInt(job.experience.replace(/[^0-9]/g, ""), 10) || 0
-          : job.experience;
+      // const experienceNumber =
+      //   typeof job.experience === "string"
+      //     ? parseInt(job.experience.replace(/[^0-9]/g, ""), 10) || 0
+      //     : job.experience;
 
       setFormData({
         title: job.title,
         description: job.description,
         location: job.location,
-        salary: salaryNumber,
-        experience: experienceNumber,
+        salary: job.salary,
+        experience: job.experience,
         numOfPositions: job.numOfPositions, // Assuming totalPositions is the correct field for the number of positions
-        bonusForReferral: job.bonusForRefferal,
+        bonusForReferral: job.bonusForReferral,
       });
       setRequirements(job.skills.split(",") || []);
     }
@@ -107,6 +107,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <Label htmlFor="title">Job Title</Label>
           <Input
             id="title"
+            placeholder="Enter Job Title"
             value={formData.title}
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
@@ -118,6 +119,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <Label htmlFor="location">Location</Label>
           <Input
             id="location"
+            placeholder="Enter Location"
             value={formData.location}
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
@@ -126,20 +128,21 @@ const JobForm: React.FC<JobFormProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="salary">Salary (LPA)</Label>
+          <Label htmlFor="salary">Salary (Rupees)</Label>
           {/* Input expects salary in LPA, convert to full amount for internal state */}
           <Input
             id="salary"
             type="number"
+            placeholder="Enter Salary"
             value={
               formData.salary || formData.salary === 0
                 ? formData.salary.toString()
                 : ""
-            }// Display as LPA
+            } // Display as LPA
             onChange={(e) =>
               setFormData({
                 ...formData,
-                salary: Number(e.target.value) * 100000,
+                salary: Number(e.target.value),
               })
             } // Store as full amount
             required
@@ -150,6 +153,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <Input
             id="experience"
             type="number"
+            placeholder="Enter Experience in years"
             min="0"
             value={
               formData.experience || formData.experience === 0
@@ -167,9 +171,10 @@ const JobForm: React.FC<JobFormProps> = ({
           <Input
             id="numOfPositions"
             type="number"
+            placeholder="Enter number of available positions"
             min="1"
             value={
-              formData.numOfPositions|| formData.numOfPositions=== 0
+              formData.numOfPositions || formData.numOfPositions === 0
                 ? formData.numOfPositions.toString()
                 : ""
             }
@@ -187,6 +192,7 @@ const JobForm: React.FC<JobFormProps> = ({
           <Input
             id="bonusForReferral"
             type="number"
+            placeholder="Enter Bonus (Rupees) for Referrer"
             min="0"
             value={
               formData.bonusForReferral || formData.bonusForReferral === 0
@@ -208,6 +214,7 @@ const JobForm: React.FC<JobFormProps> = ({
         <Textarea
           id="description"
           rows={4}
+          placeholder="Enter Job Description"
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
