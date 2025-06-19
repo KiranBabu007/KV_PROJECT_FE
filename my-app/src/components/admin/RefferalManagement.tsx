@@ -51,9 +51,9 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
   const [downloadResume] = useGetResumeMutation();
   // Map API data to component format
-  const referrals = useMemo(
+  const mappedReferrals = useMemo(
     () =>
-      (referralsData || [])
+      (referrals || [])
         .filter((ref): ref is APIReferral => ref !== null)
         .map(
           (ref): Referral => ({
@@ -81,7 +81,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
             deletedAt: ref.deletedAt ?? null,
           })
         ),
-    [referralsData]
+    [referrals]
   );
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
@@ -177,7 +177,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
 
   const searchReferrals = (query: string): Referral[] => {
     const lowercaseQuery = query.toLowerCase();
-    return referrals.filter(
+    return mappedReferrals.filter(
       (referral) =>
         referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
@@ -198,20 +198,21 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
 
   const displayReferrals = searchQuery
     ? searchReferrals(searchQuery)
-    : referrals;
+    : mappedReferrals;
 
   const getStatsCards = () => {
     const stats = {
-      total: referrals.length,
-      submitted: referrals.filter((r) => r.status === "submitted").length,
-      under_review: referrals.filter((r) => r.status === "under_review").length,
-      accepted: referrals.filter((r) => r.status === "accepted").length,
+      total: mappedReferrals.length,
+      submitted: mappedReferrals.filter((r) => r.status === "submitted").length,
+      under_review: mappedReferrals.filter((r) => r.status === "under_review")
+        .length,
+      accepted: mappedReferrals.filter((r) => r.status === "accepted").length,
     };
     return stats;
   };
 
   const stats = getStatsCards();
-  console.log(referrals);
+  console.log(mappedReferrals);
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -413,7 +414,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
             <div className="space-y-6">
               {selectedReferral ? (
                 (() => {
-                  const referral = referrals.find(
+                  const referral = mappedReferrals.find(
                     (r) => r.id === selectedReferral
                   );
                   if (!referral) return null;
