@@ -325,7 +325,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
                   size="sm"
                   onClick={() => {
                     setResumeFile(null);
-                    setResumeId(null); // Also clear resumeId
+                    setResumeId(null); 
                   }}
                 >
                   <X className="h-4 w-4" />

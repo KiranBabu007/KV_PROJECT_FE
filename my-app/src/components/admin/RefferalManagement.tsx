@@ -61,6 +61,7 @@ const referrals = useMemo(() =>
       trackingToken: '', // Not present in APIReferral, set as needed
       createdAt: ref.createdAt ?? '',
       deletedAt: ref.deletedAt ?? null,
+      resumeScore:ref.resume?.resumeScore
     })),
   [referralsData]
 );
@@ -349,7 +350,9 @@ const getStatusIcon = (status: string) => {
                             <span className="font-mono ml-1 bg-gray-100 px-2 py-1 rounded text-xs">
                               {referral.referralCode}
                             </span>
+
                           </p>
+                          <p>resume Score:{referral.resumeScore}</p>
                         </div>
 
                         <div className="flex flex-col items-end">

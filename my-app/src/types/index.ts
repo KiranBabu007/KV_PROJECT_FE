@@ -45,26 +45,26 @@ export interface Notification {
   createdAt: Date;
 }
 
-export interface APIReferral {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  status: string;
-  jobPosting: {
-    id: number;
-    title: string;
-    bonusForReferral: boolean;
-  };
-  referrer: {
-    id: number;
-    name: string;
-  };
-  referred: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-}
+// export interface APIReferral {
+//   id: number;
+//   createdAt: string;
+//   updatedAt: string;
+//   status: string;
+//   jobPosting: {
+//     id: number;
+//     title: string;
+//     bonusForReferral: boolean;
+//   };
+//   referrer: {
+//     id: number;
+//     name: string;
+//   };
+//   referred: {
+//     name: string;
+//     email: string;
+//     phone: string;
+//   };
+// }
 
 export interface Referral {
   id: string;
@@ -86,6 +86,7 @@ export interface Referral {
   trackingToken: string;
   createdAt: string;
   deletedAt: string | null;
+  resumeScore:number
 }
 
 export interface Bonus {
@@ -168,6 +169,8 @@ export interface APIReferral {
   };
   resume: {
     id: number;
+    resumeScore:number
+    skills:string
   } | null;
 }
 
