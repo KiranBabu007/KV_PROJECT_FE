@@ -24,10 +24,12 @@ import {
 } from "@/api-service/job/job.api";
 import { useGetReferralsListQuery } from "@/api-service/referrals/referrals.api";
 import { useGetBonusListQuery } from "@/api-service/bonus/bonus.api";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const initialBonuses: Bonus[] = [];
 
 const AdminDashboard: React.FC = () => {
+  
   const [showJobForm, setShowJobForm] = useState(false);
   const [creatingJob, setCreatingJob] = useState<Job | null>(null);
 
@@ -150,6 +152,8 @@ const AdminDashboard: React.FC = () => {
     setCreatingJob(null);
     setShowJobForm(true);
   };
+
+
 
   return (
     <div className="space-y-8 animate-fade-in">

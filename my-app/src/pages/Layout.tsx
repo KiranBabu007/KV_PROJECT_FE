@@ -60,11 +60,15 @@ const Layout: React.FC<LayoutProps> = ({
     }
     
   }, []);
-
+ 
   // Add this function to get role from token
   const getUserRole = () => {
     const token = localStorage.getItem("token");
-    if (!token) return "";
+    if (!token){
+     
+          navigate("/login")
+        
+    }
 
     try {
       const decoded = jwtDecode<JWTUser>(token);
@@ -100,7 +104,11 @@ const Layout: React.FC<LayoutProps> = ({
     }
   };
 
-  if (!user) return null;
+  if (!user){
+    navigate("/")
+    return null;
+
+  } 
 
   const userRole = getUserRole();
 
