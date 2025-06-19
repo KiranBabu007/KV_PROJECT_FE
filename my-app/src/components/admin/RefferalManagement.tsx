@@ -29,17 +29,12 @@ import {
   useUpdateReferralStatusMutation,
   useConvertCandidateToEmployeeMutation,
 } from "@/api-service/referrals/referrals.api";
-import { useGetResumeMutation } from "@/api-service/resume/resume.api";
+import {
+  useGetResumeMutation,
+  useSendResumeMutation,
+} from "@/api-service/resume/resume.api";
 
-interface RefferalManagementProps {
-  referrals: APIReferral[];
-  isLoading: boolean;
-}
-
-const ReferralManagement: React.FC<RefferalManagementProps> = ({
-  referrals,
-  isLoading,
-}) => {
+const ReferralManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null);
 
@@ -47,13 +42,24 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
   const [joiningDate, setJoiningDate] = useState<string>("");
   const [isConverting, setIsConverting] = useState(false);
 
+  // Replace api.referrals with RTK Query hooks
+  const { data: referralsData = [], isLoading } = useGetReferralsListQuery(
+    undefined,
+    {
+      selectFromResult: ({ data, ...rest }) => ({
+        data: data ?? [], // Ensure data is never undefined
+        ...rest,
+      }),
+    }
+  );
+
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
   const [downloadResume] = useGetResumeMutation();
   // Map API data to component format
-  const mappedReferrals = useMemo(
+  const referrals = useMemo(
     () =>
-      (referrals || [])
+      (referralsData || [])
         .filter((ref): ref is APIReferral => ref !== null)
         .map(
           (ref): Referral => ({
@@ -81,7 +87,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
             deletedAt: ref.deletedAt ?? null,
           })
         ),
-    [referrals]
+    [referralsData]
   );
 
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
@@ -96,6 +102,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
     }
   };
 
+  // Add this function to handle candidate conversion
   const handleConvertToEmployee = async (referralId: string) => {
     if (!joiningDate) {
       console.error("Joining date is required");
@@ -127,6 +134,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
         timestamp: new Date().toISOString(),
       });
 
+      // Re-throw the error if you want to handle it in the UI
       throw error;
     } finally {
       setIsConverting(false);
@@ -177,7 +185,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
 
   const searchReferrals = (query: string): Referral[] => {
     const lowercaseQuery = query.toLowerCase();
-    return mappedReferrals.filter(
+    return referrals.filter(
       (referral) =>
         referral.candidateEmail.toLowerCase().includes(lowercaseQuery) ||
         referral.referralCode.toLowerCase().includes(lowercaseQuery) ||
@@ -198,21 +206,20 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
 
   const displayReferrals = searchQuery
     ? searchReferrals(searchQuery)
-    : mappedReferrals;
+    : referrals;
 
   const getStatsCards = () => {
     const stats = {
-      total: mappedReferrals.length,
-      submitted: mappedReferrals.filter((r) => r.status === "submitted").length,
-      under_review: mappedReferrals.filter((r) => r.status === "under_review")
-        .length,
-      accepted: mappedReferrals.filter((r) => r.status === "accepted").length,
+      total: referrals.length,
+      submitted: referrals.filter((r) => r.status === "submitted").length,
+      under_review: referrals.filter((r) => r.status === "under_review").length,
+      accepted: referrals.filter((r) => r.status === "accepted").length,
     };
     return stats;
   };
 
   const stats = getStatsCards();
-  console.log(mappedReferrals);
+  console.log(referrals);
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -414,7 +421,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
             <div className="space-y-6">
               {selectedReferral ? (
                 (() => {
-                  const referral = mappedReferrals.find(
+                  const referral = referrals.find(
                     (r) => r.id === selectedReferral
                   );
                   if (!referral) return null;
@@ -466,6 +473,7 @@ const ReferralManagement: React.FC<RefferalManagementProps> = ({
                               )} border px-3 py-1.5 flex items-center gap-1 font-medium`}
                             >
                               {getStatusIcon(referral.status)}
+
                               {referral.status}
                             </Badge>
                           </div>
