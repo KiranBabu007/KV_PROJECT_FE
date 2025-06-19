@@ -91,6 +91,7 @@ const ReferralManagement: React.FC = () => {
             deletedAt: ref.deletedAt ?? null,
             resumeScore: ref.resume?.resumeScore,
             skills: ref.resume?.skills,
+            role:ref.referred.role
           })
         ),
     [referralsData]
@@ -378,6 +379,7 @@ const ReferralManagement: React.FC = () => {
                   </span>
                 </div>
               )}
+            
               {displayReferrals.length === 0 ? (
                 <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center">
@@ -607,11 +609,14 @@ const ReferralManagement: React.FC = () => {
 
                               <Button
                                 onClick={() =>
-                                  handleConvertToEmployee(referral.id)
-                                }
-                                disabled={!joiningDate || isConverting}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
-                              >
+                                  handleConvertToEmployee(referral.id)}
+                                disabled={!joiningDate || isConverting || referral.role === 'EMPLOYEE'}
+  className={`w-full ${
+    referral.referred?.role === 'EMPLOYEE'
+      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+      : 'bg-green-600 hover:bg-green-700 text-white'
+  } flex items-center justify-center gap-2`}
+>
                                 {isConverting ? (
                                   <>
                                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
