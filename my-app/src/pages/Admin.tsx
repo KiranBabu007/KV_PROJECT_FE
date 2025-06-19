@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import type { Job, Referral, Bonus, APIReferral } from "@/types";
+import { type Job, type Referral, type Bonus, type APIReferral, ReferralStatus } from "@/types";
 import ReferralManagement from "@/components/admin/RefferalManagement";
 import JobList from "@/components/admin/JobList";
 import JobForm from "@/components/admin/JobForm";
@@ -54,8 +54,8 @@ const AdminDashboard: React.FC = () => {
         candidateEmail: ref.referred.email,
         candidatePhone: ref.referred.phone,
         status: ref.status?.toLowerCase().replace(/ /g, "_") || "",
-        submittedAt: new Date(ref.createdAt),
-        updatedAt: new Date(ref.updatedAt),
+        submittedAt: String(new Date(ref.createdAt)),
+        updatedAt: String(new Date(ref.updatedAt)),
         referralCode: `REF-${ref.id.toString().padStart(3, "0")}`,
         bonusEligible: false,
         bonusPaid: false,
@@ -90,20 +90,28 @@ const AdminDashboard: React.FC = () => {
   };
 
   // Stats
-  const activeJobs = jobs.filter((job) => job.status === "active").length;
+  const activeJobs = jobs.length;
   const totalReferrals = referrals.length;
+
   const pendingReferrals = referrals.filter(
-    (r) => r.status.includes("submitted") || r.status.includes("review")
-  ).length;
+  (r) =>
+    r.status !== ReferralStatus.ACCEPTED &&
+    r.status !== ReferralStatus.REJECTED
+).length;
+
+  const acceptedReferrals = referrals.filter(
+  (r) => r.status === "accepted" || r.status === "referral_accepted"
+).length;
+  
   const totalBonusAmount = bonuses.reduce(
     (sum, bonus) => (bonus.status === "SETTLED" ? sum + bonus.amount : sum),
     0
   );
   const pendingBonusAmount = bonuses.reduce(
-    (sum, bonus) => (bonus.status === "PENDING" ? sum + bonus.amount : sum),
+    (sum, bonus) => (bonus.status === "DUE" ? sum + bonus.amount : sum),
     0
   );
-  const eligibleBonuses = bonuses.filter((b) => b.status === "PENDING").length;
+  const eligibleBonuses = bonuses.filter((b) => b.status === "DUE").length;
   const paidBonuses = bonuses.filter((b) => b.status === "SETTLED").length;
 
   const stats = [
@@ -113,32 +121,33 @@ const AdminDashboard: React.FC = () => {
       icon: Briefcase,
       color: "text-blue-600",
       bgColor: "bg-gradient-to-br from-blue-50 to-blue-100",
-      trend: "+12%",
+     
     },
-    {
-      title: "Total Referrals",
-      value: totalReferrals,
-      icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-gradient-to-br from-green-50 to-green-100",
-      trend: "+8%",
-    },
-    {
-      title: "Pending Reviews",
-      value: pendingReferrals,
-      icon: AlertCircle,
-      color: "text-orange-600",
-      bgColor: "bg-gradient-to-br from-orange-50 to-orange-100",
-      trend: "-3%",
-    },
+ {
+    title: "Due Bonuses",
+    value: `₹${(pendingBonusAmount).toLocaleString()}`,
+    
+    icon: AlertCircle,
+    color: "text-amber-600",
+    bgColor: "bg-gradient-to-br from-amber-50 to-amber-100",
+    borderColor: "border-amber-200"
+  },
+   
     {
       title: "Total Bonus Paid",
       value: `₹${totalBonusAmount.toLocaleString()}`,
       icon: TrendingUp,
       color: "text-green-600",
       bgColor: "bg-gradient-to-br from-green-50 to-green-100",
-      trend: `${paidBonuses} bonuses`,
+     
     },
+   {
+    title: "Pending Referrals",
+    value: pendingReferrals,
+    icon: Users,
+    color: "text-yellow-600",
+    bgColor: "bg-gradient-to-br from-yellow-50 to-yellow-100",
+  },
   ];
 
   // Open JobForm for create
@@ -199,16 +208,7 @@ const AdminDashboard: React.FC = () => {
                       <p className="text-3xl font-bold text-gray-900">
                         {stat.value}
                       </p>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
-                          stat.trend.startsWith("+")
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {stat.trend}
-                      </Badge>
+                      
                     </div>
                   </div>
                   <div
