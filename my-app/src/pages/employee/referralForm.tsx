@@ -5,9 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, X, Copy, Check } from "lucide-react";
 import type { Job, Referral, User } from "@/types";
-import {
-  useSendResumeMutation,
-} from "@/api-service/resume/resume.api";
+import { useSendResumeMutation } from "@/api-service/resume/resume.api";
 
 import { useCreateReferralMutation } from "@/api-service/referrals/referrals.api"; // Import the mutation hook
 
@@ -34,7 +32,7 @@ import { useCreateReferralMutation } from "@/api-service/referrals/referrals.api
 
 interface ReferralFormProps {
   jobId: string;
-  jobs: any[]; 
+  jobs: any[];
   user: User;
   onCancel?: () => void;
 }
@@ -45,7 +43,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
   user,
   onCancel,
 }) => {
-  console.log("USER:", user)
+  console.log("USER:", user);
   const [formData, setFormData] = useState({
     candidateName: "",
     candidateEmail: "",
@@ -302,7 +300,11 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
             <Input
               id="experience"
               type="number" // Changed to number for years of experience
-              value={formData.experience}
+              value={
+                formData.experience || formData.experience === 0
+                  ? formData.experience.toString()
+                  : ""
+              }
               onChange={(e) =>
                 setFormData({ ...formData, experience: Number(e.target.value) })
               }
@@ -338,18 +340,39 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
                 <p className="text-sm text-gray-600 mb-2">
                   Upload candidate's resume
                 </p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <Label htmlFor="resume-upload" className="cursor-pointer">
-                  <Button type="button" variant="outline" size="sm">
+
+                <div className="flex justify-center">
+                  <input
+                    id="resume-upload"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 transition"
+                    onClick={() => {
+                      const fileInput =
+                        document.getElementById("resume-upload");
+                      if (fileInput) fileInput.click();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        const fileInput =
+                          document.getElementById("resume-upload");
+                        if (fileInput) fileInput.click();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Choose File"
+                  >
                     Choose File
-                  </Button>
-                </Label>
+                  </button>
+                </div>
+
                 <p className="text-xs text-gray-500 mt-1">
                   PDF or Word documents only
                 </p>

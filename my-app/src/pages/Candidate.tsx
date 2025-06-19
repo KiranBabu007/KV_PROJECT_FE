@@ -54,10 +54,9 @@ const statusMap: Record<string, string> = {
   "Referral Under Review": "Referral Under Review",
   "Referral Accepted": "Referral Accepted",
   "Interviews Round 1": "Interview Round 1",
-  "Interviews Round 2": "Interview Round 2",
-  //"Interviews Round 3": "Interview Round 3",
-  Rejected: "Final Result",
-  Accepted: "Final Result",
+  "Interview Round 2": "Interview Round 2",
+  Rejected: "Rejected",
+  Accepted: "Accepted",
 };
 
 function buildReferralData(apiResponse: ReferralsResponse): ReferralData {
@@ -156,43 +155,48 @@ function buildFakeDatesFromHistories(
 
 // Updated generateStatusSteps
 function generateStatusSteps(
-  currentCompletedStatus: string,
+  currentCompletedStatus: string, // Already raw status from API
   failed: boolean,
   fakeDates: string[]
 ) {
-  const currentIndex = allSteps.findIndex(
-    (step) => step === currentCompletedStatus
-  );
+  console.log("🚀 ~ currentCompletedStatus:", currentCompletedStatus);
+  const isAccepted = currentCompletedStatus === "Accepted";
+
+  const failureStep =
+    statusMap[currentCompletedStatus] || currentCompletedStatus;
+  const failedIndex = allSteps.findIndex((step) => step === failureStep);
 
   return allSteps.map((step, index) => {
     let status: "completed" | "current" | "pending" | "failed";
     let name = step;
 
-    const isPast = index < currentIndex;
-    const isCurrent = index === currentIndex;
-
-    // ✅ Special case: If status is "Accepted", mark all as completed
-    if (currentCompletedStatus === "Accepted") {
-      name = step === "Final Result" ? "Accepted" : step;
+    // ✅ All steps completed if Accepted
+    if (isAccepted) {
       status = "completed";
-    } else if (step === "Final Result" && failed) {
-      name = "Failed";
-      status = "failed";
-    } else if (failed && isCurrent) {
-      status = "failed";
-    } else if (isPast) {
-      status = "completed";
-    } else if (isCurrent) {
-      status = "completed";
-    } else if (index === currentIndex + 1 && !failed) {
-      status = "current";
-    } else {
-      status = "pending";
+      name = step === "Final Result" ? "Selected" : step;
     }
 
-    // If failed, mark all future steps as failed
-    if (failed && index > currentIndex) {
-      status = "failed";
+    // ❌ If Rejected or failed
+    else if (failed) {
+      if (index < failedIndex) {
+        status = "completed";
+      } else if (index === failedIndex) {
+        status = "failed";
+      } else {
+        status = "failed";
+        name = name === "Final Result" ? "Rejected" : name;
+      }
+    }
+
+    // ⏳ Normal case
+    else {
+      if (index < failedIndex) {
+        status = "completed";
+      } else if (index === failedIndex) {
+        status = "current";
+      } else {
+        status = "pending";
+      }
     }
 
     return {
@@ -369,7 +373,7 @@ export default function Index() {
             </Card>
 
             {/* Updates */}
-            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
+            {/* <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
               <CardHeader className="mb-6">
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <MessageCircleQuestion className="text-emerald-600" />
@@ -408,52 +412,12 @@ export default function Index() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-7 fade-in-up">
             <ReferralDetails data={referralData} />
-            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 hover-scale fade-in-up">
-              <CardHeader className="mb-6">
-                <CardTitle className="text-2xl">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <button className="w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-violet-50 hover:shadow-sm transition-all duration-200 hover-scale flex items-center gap-3">
-                  <UserCog className="h-6 w-6 text-gray-500" />
-                  <div>
-                    <p className="text-lg font-medium text-gray-900">
-                      Update Contact Information
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Keep your details current
-                    </p>
-                  </div>
-                </button>
-                <button className="w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 hover-scale flex items-center gap-3">
-                  <Download className="h-6 w-6 text-blue-600" />
-                  <div>
-                    <p className="text-lg font-medium text-gray-900">
-                      Download Application
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Get a copy of your submission
-                    </p>
-                  </div>
-                </button>
-                <button className="w-full text-left p-4 rounded-lg border border-gray-200 hover:bg-green-50 hover:shadow-sm transition-all duration-200 hover-scale flex items-center gap-3">
-                  <Mail className="h-6 w-6 text-green-600" />
-                  <div>
-                    <p className="text-lg font-medium text-gray-900">
-                      Contact HR
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Get help with your application
-                    </p>
-                  </div>
-                </button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
