@@ -58,8 +58,8 @@ const ReferralManagement: React.FC = () => {
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
   const [downloadResume] = useGetResumeMutation();
- 
-const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
+
+  const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
   // Map API data to component format
   const referrals = useMemo(
     () =>
@@ -96,6 +96,31 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
     [referralsData]
   );
 
+  const getResumeScoreColor = (score: number) => {
+    if (score >= 60) {
+      return {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        border: "border-green-200",
+        badge: "bg-green-500",
+      };
+    } else if (score >= 30) {
+      return {
+        bg: "bg-yellow-100",
+        text: "text-yellow-700",
+        border: "border-yellow-200",
+        badge: "bg-yellow-500",
+      };
+    } else {
+      return {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        border: "border-red-200",
+        badge: "bg-red-500",
+      };
+    }
+  };
+
   const handleStatusUpdate = async (referralId: string, newStatus: string) => {
     try {
       await updateStatus({
@@ -127,14 +152,14 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
         joiningDate: new Date(joiningDate).toISOString(),
       }).unwrap();
 
-       setConversionSuccess(true);
-    
-    // Reset after 5 seconds
-    setTimeout(() => {
-      setConversionSuccess(false);
-      setJoiningDate("");
-      setSelectedReferral(null);
-    }, 5000);
+      setConversionSuccess(true);
+
+      // Reset after 5 seconds
+      setTimeout(() => {
+        setConversionSuccess(false);
+        setJoiningDate("");
+        setSelectedReferral(null);
+      }, 5000);
 
       console.log("Conversion successful ✅", {
         referralId,
@@ -207,7 +232,6 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
   };
-  
 
   // Removed setReferrals as referrals are now derived from RTK Query data
   // const updateReferral = (id: string, updates: Partial<Referral>) => {
@@ -344,16 +368,16 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Enhanced Referrals List */}
-      
-            <div className="lg:col-span-2 space-y-4">
 
-          
-                    {conversionSuccess && (
-  <div className=" bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
-    <CheckCircle className="h-5 w-5 text-green-500" />
-    <span className="font-medium">Successfully converted to employee!</span>
-  </div>
-)}
+            <div className="lg:col-span-2 space-y-4">
+              {conversionSuccess && (
+                <div className=" bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span className="font-medium">
+                    Successfully converted to employee!
+                  </span>
+                </div>
+              )}
               {displayReferrals.length === 0 ? (
                 <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center">
@@ -385,7 +409,6 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
                       document.body.scrollIntoView({
                         behavior: "smooth",
                         block: "start",
-                      
                       });
                     }}
                   >
@@ -406,12 +429,27 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
                               {referral.referralCode}
                             </span>
                           </p>
-                          <p className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-yellow-700 font-medium shadow-sm mt-2 ml-1 text-xs border border-amber-200">
+                          <p
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full ${
+                              getResumeScoreColor(referral.resumeScore || 0).bg
+                            } ${
+                              getResumeScoreColor(referral.resumeScore || 0)
+                                .text
+                            } 
+  font-medium shadow-sm mt-2 ml-1 text-xs border ${
+    getResumeScoreColor(referral.resumeScore || 0).border
+  }`}
+                          >
                             <span className="mr-1 font-bold">
                               Resume Score:
                             </span>
-                            <span className="bg-orange-400 py-0.5 text-white rounded-full px-2  font-bold shadow text-xs">
-                              {referral.resumeScore}
+                            <span
+                              className={`${
+                                getResumeScoreColor(referral.resumeScore || 0)
+                                  .badge
+                              } py-0.5 text-white rounded-full px-2 font-bold shadow text-xs`}
+                            >
+                              {referral.resumeScore || 0}
                             </span>
                           </p>
                           <p className="text-xs text-gray-600 flex flex-wrap items-center gap-2 mt-2 ml-1">
@@ -593,8 +631,6 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
                                 candidate
                               </p>
                             </div>
-
-                            
                           ) : (
                             <div className="flex gap-2">
                               <Select
@@ -718,11 +754,13 @@ const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
                           )}
 
                           {conversionSuccess && (
-  <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
-    <CheckCircle className="h-5 w-5 text-green-500" />
-    <span className="font-medium">Successfully converted to employee!</span>
-  </div>
-)}
+                            <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
+                              <CheckCircle className="h-5 w-5 text-green-500" />
+                              <span className="font-medium">
+                                Successfully converted to employee!
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Information Cards Grid */}
