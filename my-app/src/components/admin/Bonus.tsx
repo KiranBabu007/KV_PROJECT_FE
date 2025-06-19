@@ -41,7 +41,7 @@ const BonusManagement: React.FC = () => {
   const paidBonuses =
     bonuses?.filter((bonus) => bonus.bonusStatus === "SETTLED").length || 0;
   const pendingBonuses =
-    bonuses?.filter((bonus) => bonus.bonusStatus === "PENDING").length || 0;
+    bonuses?.filter((bonus) => bonus.bonusStatus === "DUE").length || 0;
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -194,7 +194,7 @@ const BonusManagement: React.FC = () => {
                     Pending Bonuses
                   </p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    1
+                    {pendingBonuses}
                   </p>
                   <div className="flex items-center text-xs text-amber-600">
                     <Clock className="h-3 w-3 mr-1" />
