@@ -213,24 +213,13 @@ const Login = () => {
 
 
 
-                {/* Social proof */}
-                <div className="text-center">
-                  <p className="text-xs text-slate-400">
-                    Trusted by professionals at 500+ companies
-                  </p>
-                </div>
+     
+               
               </CardContent>
             </Card>
 
-            {/* Footer */}
-            <div className="text-center mt-8">
-              <p className="text-sm text-slate-400">
-                Don't have an account?{" "}
-                <button className="text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium">
-                  Sign up
-                </button>
-              </p>
-            </div>
+         
+           
           </div>
         </div>
       </div>

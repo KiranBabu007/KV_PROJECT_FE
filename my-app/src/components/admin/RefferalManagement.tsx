@@ -22,6 +22,7 @@ import {
   Users,
   Info,
   SearchIcon,
+  CheckCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ReferralStatus, type APIReferral, type Referral } from "@/types";
@@ -57,6 +58,8 @@ const ReferralManagement: React.FC = () => {
   const [updateStatus] = useUpdateReferralStatusMutation();
   const [convertToEmployee] = useConvertCandidateToEmployeeMutation();
   const [downloadResume] = useGetResumeMutation();
+ 
+const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
   // Map API data to component format
   const referrals = useMemo(
     () =>
@@ -123,6 +126,15 @@ const ReferralManagement: React.FC = () => {
         referralId: parseInt(referralId),
         joiningDate: new Date(joiningDate).toISOString(),
       }).unwrap();
+
+       setConversionSuccess(true);
+    
+    // Reset after 5 seconds
+    setTimeout(() => {
+      setConversionSuccess(false);
+      setJoiningDate("");
+      setSelectedReferral(null);
+    }, 5000);
 
       console.log("Conversion successful ✅", {
         referralId,
@@ -195,6 +207,7 @@ const ReferralManagement: React.FC = () => {
         referral.candidateName.toLowerCase().includes(lowercaseQuery)
     );
   };
+  
 
   // Removed setReferrals as referrals are now derived from RTK Query data
   // const updateReferral = (id: string, updates: Partial<Referral>) => {
@@ -331,7 +344,16 @@ const ReferralManagement: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Enhanced Referrals List */}
+      
             <div className="lg:col-span-2 space-y-4">
+
+          
+                    {conversionSuccess && (
+  <div className=" bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
+    <CheckCircle className="h-5 w-5 text-green-500" />
+    <span className="font-medium">Successfully converted to employee!</span>
+  </div>
+)}
               {displayReferrals.length === 0 ? (
                 <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center">
@@ -356,7 +378,16 @@ const ReferralManagement: React.FC = () => {
                         ? "ring-2 ring-blue-500 shadow-xl scale-[1.02]"
                         : "hover:scale-[1.01]"
                     }`}
-                    onClick={() => setSelectedReferral(referral.id)}
+                    onClick={() => {
+                      setSelectedReferral(referral.id);
+
+                      // Scroll to top of the page
+                      document.body.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      
+                      });
+                    }}
                   >
                     <CardHeader className="pb-4">
                       <div className="flex justify-between items-start">
@@ -562,6 +593,8 @@ const ReferralManagement: React.FC = () => {
                                 candidate
                               </p>
                             </div>
+
+                            
                           ) : (
                             <div className="flex gap-2">
                               <Select
@@ -683,6 +716,13 @@ const ReferralManagement: React.FC = () => {
                               </Button>
                             </div>
                           )}
+
+                          {conversionSuccess && (
+  <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-lg animate-fade-in flex items-center space-x-2">
+    <CheckCircle className="h-5 w-5 text-green-500" />
+    <span className="font-medium">Successfully converted to employee!</span>
+  </div>
+)}
                         </div>
 
                         {/* Information Cards Grid */}
