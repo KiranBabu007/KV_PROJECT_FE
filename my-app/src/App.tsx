@@ -5,24 +5,18 @@ import type { JWTUser, User } from "@/types";
 import Layout from "./pages/Layout";
 import Admin from "./pages/Admin";
 import Candidate from "./pages/Candidate";
-import { Provider } from "react-redux";
-import store from "./store/store";
+
 import EmployeeDashboard from "./pages/employee/Employee";
 import JobDetails from "./pages/JobDetails";
 import {
-  useGetPersonNotificationsQuery,
   useMarkasReadMutation,
 } from "./api-service/notifications/notifications.api";
-import { skipToken } from "@reduxjs/toolkit/query";
-import { jwtDecode } from "jwt-decode";
+
 
 // Helper to decode token
 
 function App() {
-  //  const decodedUser = getUserDetails();
-  //   if (decodedUser) {
-  //     setUser(decodedUser);
-  //   }
+
 
   const [setAsRead] = useMarkasReadMutation();
 

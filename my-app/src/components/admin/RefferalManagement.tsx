@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Calendar, User, Mail, Phone, FileText, Clock, Award, Users,Info } from 'lucide-react';
+import { Search, Calendar, User, Mail, Phone, FileText, Clock, Award, Users,Info, SearchIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ReferralStatus, type APIReferral, type Referral } from '@/types';
 import { 
@@ -195,9 +195,9 @@ const getStatusIcon = (status: string) => {
   const getStatsCards = () => {
     const stats = {
       total: referrals.length,
-      submitted: referrals.filter((r) => r.status === "submitted").length,
-      under_review: referrals.filter((r) => r.status === "under_review").length,
-      accepted: referrals.filter((r) => r.status === "accepted").length,
+      submitted: referrals.filter((r) => r.status === ReferralStatus.REFERRAL_SUBMITTED).length,
+      under_review: referrals.filter((r) => r.status === ReferralStatus.REFERRAL_UNDER_REVIEW).length,
+      accepted: referrals.filter((r) => r.status === ReferralStatus.ACCEPTED).length,
     };
     return stats;
   };
@@ -224,8 +224,10 @@ const getStatusIcon = (status: string) => {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="relative flex items-center space-x-4">
+                  
+                  <SearchIcon className="text-gray-400 h-6 w-6" />
+                  {/* <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" /> */}
                   <Input
                     placeholder="Search by email, name, or referral code..."
                     value={searchQuery}
@@ -367,9 +369,8 @@ const getStatusIcon = (status: string) => {
                               <Button
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Prevent card selection when button is clicked
-                                  downloadResume(referral.resumeId)
-
+                                  e.stopPropagation();
+                                  downloadResume(Number(referral.resumeId))
                                 }}
                               >
                                 Download Resume
