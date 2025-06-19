@@ -33,6 +33,7 @@ export interface Job {
   experience: number;
   salary: number;
   bonusForReferral: number;
+  filledPositions: number;
 }
 
 
