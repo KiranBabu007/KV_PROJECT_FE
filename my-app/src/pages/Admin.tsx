@@ -93,15 +93,13 @@ const AdminDashboard: React.FC = () => {
   const activeJobs = jobs.length;
   const totalReferrals = referrals.length;
 
-  const pendingReferrals = referrals.filter(
-  (r) =>
-    r.status !== ReferralStatus.ACCEPTED &&
-    r.status !== ReferralStatus.REJECTED
-).length;
+//   const pendingReferrals = referrals.filter(
+//   (r) =>
+//     r.status !== ReferralStatus.ACCEPTED &&
+//     r.status !== ReferralStatus.REJECTED
+// ).length;
 
-  const acceptedReferrals = referrals.filter(
-  (r) => r.status === "accepted" || r.status === "referral_accepted"
-).length;
+
   
   const totalBonusAmount = bonuses.reduce(
     (sum, bonus) => (bonus.status === "SETTLED" ? sum + bonus.amount : sum),
@@ -113,6 +111,10 @@ const AdminDashboard: React.FC = () => {
   );
   const eligibleBonuses = bonuses.filter((b) => b.status === "DUE").length;
   const paidBonuses = bonuses.filter((b) => b.status === "SETTLED").length;
+
+  const acceptedReferrals = referrals.filter(
+  (r) => r.status === ReferralStatus.ACCEPTED
+).length;
 
   const stats = [
     {
@@ -142,11 +144,11 @@ const AdminDashboard: React.FC = () => {
      
     },
    {
-    title: "Pending Referrals",
-    value: pendingReferrals,
-    icon: Users,
-    color: "text-yellow-600",
-    bgColor: "bg-gradient-to-br from-yellow-50 to-yellow-100",
+    title: "Accepted Referrals",
+    value: acceptedReferrals,
+    icon: TrendingUp,
+    color: "text-green-600",
+    bgColor: "bg-gradient-to-br from-green-50 to-green-100",
   },
   ];
 
