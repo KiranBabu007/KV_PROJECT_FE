@@ -83,9 +83,9 @@ export interface Referral {
   bonusPaid: boolean;
   resumeId?: string;
   bonusAmount?: number;
-  trackingToken: string;
-  createdAt: string;
-  deletedAt: string | null;
+  trackingToken?: string;
+  createdAt?: string;
+  deletedAt?: string | null;
 }
 
 export interface Bonus {

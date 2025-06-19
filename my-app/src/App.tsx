@@ -76,9 +76,9 @@ function App() {
     {
       path: "/job/:jobId",
       element: (
-        <Layout markNotificationRead={markNotificationRead}>
+        
           <JobDetails />
-        </Layout>
+      
       ),
     },
   ]);
