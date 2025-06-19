@@ -190,18 +190,7 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm text-slate-300">
-                      <input type="checkbox" className="rounded border-slate-600 bg-slate-800" />
-                      <span>Remember me</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
+                
 
                   <Button
                     onClick={handleSubmit}
