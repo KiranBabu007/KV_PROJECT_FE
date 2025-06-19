@@ -339,7 +339,7 @@ const BonusManagement: React.FC = () => {
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p>Standard bonus amount: ₹83,500 per successful referral</p>
+                  <p>Contact the HR For any Queries</p>
                 </div>
               </div>
               <div className="space-y-3">
