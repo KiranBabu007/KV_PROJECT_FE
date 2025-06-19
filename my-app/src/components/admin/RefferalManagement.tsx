@@ -21,6 +21,7 @@ import {
   Award,
   Users,
   Info,
+  SearchIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ReferralStatus, type APIReferral, type Referral } from "@/types";
@@ -85,6 +86,9 @@ const ReferralManagement: React.FC = () => {
             trackingToken: "", // Not present in APIReferral, set as needed
             createdAt: ref.createdAt ?? "",
             deletedAt: ref.deletedAt ?? null,
+            resumeScore: ref.resume?.resumeScore,
+            skills: ref.resume?.skills,
+
           })
         ),
     [referralsData]
@@ -211,9 +215,14 @@ const ReferralManagement: React.FC = () => {
   const getStatsCards = () => {
     const stats = {
       total: referrals.length,
-      submitted: referrals.filter((r) => r.status === "submitted").length,
-      under_review: referrals.filter((r) => r.status === "under_review").length,
-      accepted: referrals.filter((r) => r.status === "accepted").length,
+      submitted: referrals.filter(
+        (r) => r.status === ReferralStatus.REFERRAL_SUBMITTED
+      ).length,
+      under_review: referrals.filter(
+        (r) => r.status === ReferralStatus.REFERRAL_UNDER_REVIEW
+      ).length,
+      accepted: referrals.filter((r) => r.status === ReferralStatus.ACCEPTED)
+        .length,
     };
     return stats;
   };
@@ -240,8 +249,9 @@ const ReferralManagement: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="relative flex items-center space-x-4">
+                  <SearchIcon className="text-gray-400 h-6 w-6" />
+                  {/* <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" /> */}
                   <Input
                     placeholder="Search by email, name, or referral code..."
                     value={searchQuery}
@@ -366,6 +376,33 @@ const ReferralManagement: React.FC = () => {
                               {referral.referralCode}
                             </span>
                           </p>
+                          <p className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-yellow-700 font-medium shadow-sm mt-2 ml-1 text-xs border border-amber-200">
+                            <span className="mr-1 font-bold">
+                              Resume Score:
+                            </span>
+                            <span className="bg-orange-400 py-0.5 text-white rounded-full px-2  font-bold shadow text-xs">
+                              {referral.resumeScore}
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-600 flex flex-wrap items-center gap-2 mt-2 ml-1">
+                            <span className="text-green-700 font-bold">
+                              Skills in Resume:
+                            </span>
+                            {referral.skills ? (
+                              referral.skills
+                                .split(",")
+                                .map((skill: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded-full shadow-sm border border-green-200"
+                                  >
+                                    {skill.trim()}
+                                  </span>
+                                ))
+                            ) : (
+                              <span className="text-gray-400">None</span>
+                            )}
+                          </p>
                         </div>
 
                         <div className="flex flex-col items-end">
@@ -383,8 +420,10 @@ const ReferralManagement: React.FC = () => {
                               <Button
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Prevent card selection when button is clicked
-                                  downloadResume(referral.resumeId);
+
+                                  e.stopPropagation();
+                                  downloadResume(Number(referral.resumeId));
+
                                 }}
                               >
                                 Download Resume
