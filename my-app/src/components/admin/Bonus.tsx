@@ -307,13 +307,7 @@ const BonusManagement: React.FC = () => {
                           Mark as Paid
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/50 border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300"
-                      >
-                        View Details
-                      </Button>
+                      
                     </div>
                   </div>
                 </CardContent>
