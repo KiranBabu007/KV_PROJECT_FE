@@ -1,49 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { LogOut, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {jwtDecode} from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
+} from "@/components/ui/dropdown-menu";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
-import type { User, Notification, JWTUser } from '@/types';
-import NotificationDropdown from '@/components/NotificationDropdown';
-import logo from "@/assets/logo.jpg"
-import { useGetPersonNotificationsQuery } from '@/api-service/notifications/notifications.api';
-import { skipToken } from '@reduxjs/toolkit/query';
+import type { User, Notification, JWTUser, MyJwtPayload } from "@/types";
+import NotificationDropdown from "@/components/NotificationDropdown";
+import logo from "@/assets/logo.jpg";
+import { useGetPersonNotificationsQuery } from "@/api-service/notifications/notifications.api";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 interface LayoutProps {
   children: React.ReactNode;
-  
 
   markNotificationRead: (id: string) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ 
-  children, 
+const Layout: React.FC<LayoutProps> = ({
+  children,
 
-  markNotificationRead 
+  markNotificationRead,
 }) => {
   const navigate = useNavigate();
 
-  
-
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   const getUserDetails = () => {
     const token = localStorage.getItem("token");
     if (!token) return null;
-  
+
     try {
       const decoded = jwtDecode<JWTUser>(token);
       return decoded;
@@ -53,27 +50,28 @@ const Layout: React.FC<LayoutProps> = ({
     }
   };
 
-  const [user, setUser] = useState<JWTUser|null>(null);
+  const [user, setUser] = useState<JWTUser | null>(null);
 
   useEffect(() => {
     const decodedUser = getUserDetails();
     if (decodedUser) {
       setUser(decodedUser);
+      navigate(`/${decodedUser.role.toLowerCase()}`)
     }
+    
   }, []);
-
 
   // Add this function to get role from token
   const getUserRole = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return '';
-    
+    const token = localStorage.getItem("token");
+    if (!token) return "";
+
     try {
       const decoded = jwtDecode<JWTUser>(token);
       return decoded.role.toLowerCase();
     } catch (error) {
-      console.error('Error decoding token:', error);
-      return '';
+      console.error("Error decoding token:", error);
+      return "";
     }
   };
 
@@ -91,14 +89,18 @@ const Layout: React.FC<LayoutProps> = ({
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
-      case 'admin': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg';
-      case 'employee': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg';
-      case 'candidate': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg';
-      default: return 'bg-gray-100 text-gray-800';
+      case "admin":
+        return "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg";
+      case "employee":
+        return "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg";
+      case "candidate":
+        return "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
-  
-  if(!user) return null;
+
+  if (!user) return null;
 
   const userRole = getUserRole();
 
@@ -112,8 +114,7 @@ const Layout: React.FC<LayoutProps> = ({
             <div className="flex items-center space-x-4 animate-fade-in">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <img src={logo} className='h-12 w-12 rounded-2xl'/>
-                  
+                  <img src={logo} className="h-12 w-12 rounded-2xl" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
@@ -132,19 +133,18 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
-             
-
-              <NotificationDropdown 
-
+              <NotificationDropdown
                 user={user}
                 notifications={notifications}
                 markNotificationRead={markNotificationRead}
-
               />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:shadow-lg transition-all duration-300">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full hover:shadow-lg transition-all duration-300"
+                  >
                     <Avatar className="h-10 w-10 ring-2 ring-white/50 shadow-md">
                       <AvatarImage src={user.avatar} alt={user.personName} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
@@ -153,7 +153,10 @@ const Layout: React.FC<LayoutProps> = ({
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white/95 backdrop-blur-lg border-gray-200/50 shadow-xl" align="end">
+                <DropdownMenuContent
+                  className="w-56 bg-white/95 backdrop-blur-lg border-gray-200/50 shadow-xl"
+                  align="end"
+                >
                   <div className="flex items-center justify-start gap-2 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-t-lg">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user.avatar} alt={user.personName} />
@@ -162,14 +165,16 @@ const Layout: React.FC<LayoutProps> = ({
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-gray-900">{user.personName}</p>
+                      <p className="font-medium text-gray-900">
+                        {user.personName}
+                      </p>
                       <p className="w-[200px] truncate text-sm text-gray-600">
                         {user.email}
                       </p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-red-600 hover:bg-red-50 focus:bg-red-50"
                   >
