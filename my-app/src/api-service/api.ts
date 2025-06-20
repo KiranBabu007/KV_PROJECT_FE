@@ -4,7 +4,7 @@ const baseApi = createApi({
   reducerPath: "globalApi",
   tagTypes:['JOBS','RESUME',"Referral",'NOTIFICATIONS'],
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://recruitment-platform-backend-production.up.railway.app",
+    baseUrl: "http://localhost:3000",
     prepareHeaders: (headers) => {
       // Retrieve the token from the state (assuming it's stored in the auth slice)
 
