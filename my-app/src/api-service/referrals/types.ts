@@ -73,7 +73,7 @@ export interface Referral {
   jobPosting: JobPosting
   referrer: Referrer,
   referred: Referred
-  
+  role?:string
   resume: any; // or specify the type if you know it
 }
 

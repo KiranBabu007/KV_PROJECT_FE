@@ -190,18 +190,7 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm text-slate-300">
-                      <input type="checkbox" className="rounded border-slate-600 bg-slate-800" />
-                      <span>Remember me</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
+                
 
                   <Button
                     onClick={handleSubmit}
@@ -224,24 +213,13 @@ const Login = () => {
 
 
 
-                {/* Social proof */}
-                <div className="text-center">
-                  <p className="text-xs text-slate-400">
-                    Trusted by professionals at 500+ companies
-                  </p>
-                </div>
+     
+               
               </CardContent>
             </Card>
 
-            {/* Footer */}
-            <div className="text-center mt-8">
-              <p className="text-sm text-slate-400">
-                Don't have an account?{" "}
-                <button className="text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium">
-                  Sign up
-                </button>
-              </p>
-            </div>
+         
+           
           </div>
         </div>
       </div>

@@ -89,7 +89,10 @@ export interface Referral {
   createdAt?: string;
   deletedAt?: string | null;
   skills?:string
-
+  role?:string
+  referred?:{
+    role?: string;
+  }
 }
 
 export interface Bonus {

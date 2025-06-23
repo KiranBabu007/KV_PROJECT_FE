@@ -208,7 +208,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ user }) => {
           <div className="mb-8 animate-slide-in-right">
             <Button
               variant="outline"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/employee")}
               className="group flex items-center bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
             >
               <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" />

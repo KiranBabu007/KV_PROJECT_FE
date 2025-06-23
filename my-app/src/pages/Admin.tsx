@@ -255,10 +255,10 @@ const AdminDashboard: React.FC = () => {
 
           <TabsContent value="jobs" className="space-y-6 animate-fade-in">
             <Card className="glass border-0 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+              <CardHeader className="bg-gradient-to-r p-4  from-blue-50 to-indigo-50 rounded-t-lg">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-2xl text-gray-900">
+                    <CardTitle className="text-2xl text-gray-900 ">
                       Job Postings
                     </CardTitle>
                     <p className="text-gray-600 mt-1">

@@ -41,7 +41,7 @@ const BonusManagement: React.FC = () => {
   const paidBonuses =
     bonuses?.filter((bonus) => bonus.bonusStatus === "SETTLED").length || 0;
   const pendingBonuses =
-    bonuses?.filter((bonus) => bonus.bonusStatus === "PENDING").length || 0;
+    bonuses?.filter((bonus) => bonus.bonusStatus === "DUE").length || 0;
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -194,7 +194,7 @@ const BonusManagement: React.FC = () => {
                     Pending Bonuses
                   </p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    1
+                    {pendingBonuses}
                   </p>
                   <div className="flex items-center text-xs text-amber-600">
                     <Clock className="h-3 w-3 mr-1" />
@@ -307,13 +307,7 @@ const BonusManagement: React.FC = () => {
                           Mark as Paid
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/50 border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300"
-                      >
-                        View Details
-                      </Button>
+                      
                     </div>
                   </div>
                 </CardContent>
@@ -345,7 +339,7 @@ const BonusManagement: React.FC = () => {
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p>Standard bonus amount: ₹83,500 per successful referral</p>
+                  <p>Contact the HR For any Queries</p>
                 </div>
               </div>
               <div className="space-y-3">
