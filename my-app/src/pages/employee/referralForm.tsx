@@ -350,27 +350,24 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
                     className="hidden"
                   />
 
-                  <button
-                    type="button"
-                    className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 transition"
-                    onClick={() => {
-                      const fileInput =
-                        document.getElementById("resume-upload");
-                      if (fileInput) fileInput.click();
-                    }}
+                  <span
+                    tabIndex={0}
+                    className="inline-block w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 text-sm font-medium cursor-pointer hover:bg-gray-100 transition text-center"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        const fileInput =
-                          document.getElementById("resume-upload");
-                        if (fileInput) fileInput.click();
+                      if ((e.key === "Enter" || e.key === " ") && !resumeFile) {
+                        (document.getElementById("resume-upload") as HTMLInputElement)?.click();
+                      }
+                    }}
+                    onClick={() => {
+                      if (!resumeFile) {
+                        (document.getElementById("resume-upload") as HTMLInputElement)?.click();
                       }
                     }}
                     role="button"
-                    tabIndex={0}
                     aria-label="Choose File"
                   >
                     Choose File
-                  </button>
+                  </span>
                 </div>
 
                 <p className="text-xs text-gray-500 mt-1">

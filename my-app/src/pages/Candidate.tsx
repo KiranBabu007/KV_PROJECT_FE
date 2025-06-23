@@ -182,6 +182,7 @@ function generateStatusSteps(
         status = "completed";
       } else if (index === failedIndex) {
         status = "failed";
+        name = name === "Final Result" ? "Rejected" : name;
       } else {
         status = "failed";
         name = name === "Final Result" ? "Rejected" : name;
@@ -190,9 +191,9 @@ function generateStatusSteps(
 
     // ⏳ Normal case
     else {
-      if (index < failedIndex) {
+      if (index <= failedIndex) {
         status = "completed";
-      } else if (index === failedIndex) {
+      } else if (index === failedIndex + 1) {
         status = "current";
       } else {
         status = "pending";
@@ -210,7 +211,13 @@ function generateStatusSteps(
 // Progress calculation excluding "Final Result"
 function calculateProgress(currentStatus: string, failed: boolean): number {
   const totalSteps = allSteps.length;
-  const currentIndex = allSteps.findIndex((s) => s === currentStatus);
+  let currentIndex;
+  if (currentStatus === "Accepted" || currentStatus === "Rejected") {
+    currentIndex = allSteps.length - 1; // Last step is "Final Result"
+  } else {
+    currentIndex = allSteps.findIndex((s) => s === currentStatus);
+  }
+  console.log("🚀 ~ currentIndex:", currentIndex);
 
   let completedCount = 0;
 
@@ -222,7 +229,7 @@ function calculateProgress(currentStatus: string, failed: boolean): number {
     completedCount = currentIndex + 1;
   }
 
-  if (completedCount < 0) completedCount = 0;
+  if (completedCount < 0) completedCount = 1;
   if (completedCount > totalSteps) completedCount = totalSteps;
 
   return Math.round((completedCount / totalSteps) * 100);
@@ -279,9 +286,9 @@ export default function Index() {
     referralData.failed
   );
 
-  const nextStep =
-    statusSteps.find((step) => step.status === "pending")?.name ??
-    "All steps completed";
+  // Find current and next status steps
+  const currentStep = statusSteps.find((step) => step.status === "current");
+  const nextPendingStep = statusSteps.find((step) => step.status === "pending");
 
   const displayStatus = (() => {
     const finalStep = statusSteps.find(
@@ -341,7 +348,11 @@ export default function Index() {
                       referralData.failed ? "failed" : "current"
                     )} px-4 py-2 text-lg font-bold`}
                   >
-                    {referralData.failed ? "Failed" : displayStatus}
+                    {referralData.failed
+                      ? "Failed"
+                      : currentStep
+                      ? currentStep.name
+                      : displayStatus}
                   </Badge>
                   <span className="text-base text-gray-500">
                     {progress}% Complete
@@ -353,7 +364,11 @@ export default function Index() {
                     <p className="text-sm font-medium text-blue-800 mb-1">
                       Next Step
                     </p>
-                    <p className="text-blue-700 text-sm">{nextStep}</p>
+                    <p className="text-blue-700 text-sm">
+                      {nextPendingStep
+                        ? nextPendingStep.name
+                        : "All steps completed"}
+                    </p>
                   </div>
                 )}
               </CardContent>
